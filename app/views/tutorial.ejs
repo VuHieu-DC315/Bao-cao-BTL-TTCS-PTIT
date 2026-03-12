@@ -54,6 +54,56 @@
     });
 </script>
 
+<script>
+    $(document).ready(function () {
+        $(".btnUpdate").click(function () {
+            const id = $(this).attr("data-id");
+            const row = $(this).closest("tr");
+
+            const title = row.find(".tdTitle").text().trim();
+            const description = row.find(".tdDescription").text().trim();
+            const published = row.find(".tdPublished").text().trim() === "true";
+
+            $("#updateId").val(id);
+            $("#updateTitle").val(title);
+            $("#updateDescription").val(description);
+            $("#updatePublished").prop("checked", published);
+
+            $("#updateForm").show();
+        });
+
+        $("#saveUpdate").click(function () {
+            const id = $("#updateId").val();
+
+            const newData = {
+                title: $("#updateTitle").val(),
+                description: $("#updateDescription").val(),
+                published: $("#updatePublished").is(":checked")
+            };
+
+            $.ajax({
+                url: `${window.location.origin}/api/tutorials/${id}`,
+                method: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(newData),
+                success: function (result) {
+                    console.log("Update success:", result);
+                    alert("Update thành công");
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(">>> ajax error:", error);
+                    alert("Update lỗi");
+                }
+            });
+        });
+
+        $("#cancelUpdate").click(function () {
+            $("#updateForm").hide();
+        });
+    });
+</script>
+
 <body>
     <div>
         <a href="/tutorials/create">Create new Tutorial</a>
@@ -74,17 +124,17 @@
                     <td>
                         <%= item.id %>
                     </td>
+                    <td class="tdTitle">
+    <%= item.title %>
+</td>
+<td class="tdDescription">
+    <%= item.description %>
+</td>
+<td class="tdPublished">
+    <%= item.published %>
+</td>
                     <td>
-                        <%= item.title %>
-                    </td>
-                    <td>
-                        <%= item.description %>
-                    </td>
-                    <td>
-                        <%= item.published %>
-                    </td>
-                    <td>
-                        <button>Edit</button>
+                        <button class="btnUpdate" data-id="<%=item.id%>">Update</button>
                         <button class="btnDelete" data-id="<%=item.id%>">Delete</button>
                     </td>
                 </tr>
@@ -92,6 +142,31 @@
 
 
         </table>
+        <div id="updateForm" style="display:none; margin-top:20px; border:1px solid #ccc; padding:15px;">
+    <h3>Update tutorial</h3>
+
+    <input type="hidden" id="updateId">
+
+    <div style="margin-bottom:10px;">
+        <label>Title:</label><br>
+        <input type="text" id="updateTitle" style="width:300px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label>Description:</label><br>
+        <input type="text" id="updateDescription" style="width:300px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label>
+            <input type="checkbox" id="updatePublished">
+            Published
+        </label>
+    </div>
+
+    <button id="saveUpdate">Save</button>
+    <button id="cancelUpdate">Cancel</button>
+</div>
     </div>
 </body>
 
