@@ -1,0 +1,105 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Page</title>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+        background-color: #ccc;
+    }
+
+    body {
+        padding: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $(".btnBuy").click(function () {
+            const id = $(this).attr("data-id");
+            window.location.href = `${window.location.origin}/tutorials/homePage/${id}`;
+        });
+    });
+</script>
+
+<body>
+    <div>
+        <h3>List tutorials</h3>
+        <table>
+            <tr>
+                <th>id</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Published</th>
+                <th>Action</th>
+            </tr>
+            <% tutorials.forEach(function(item) { %>
+                <tr>
+                    <td> <img src="/image/<%= item.id %>.jpg" alt="tutorial image" width="80"> </td>
+                    <td>
+                        <%= item.id %>
+                    </td>
+                    <td class="tdTitle">
+                        <%= item.title %>
+                    </td>
+                    <td class="tdDescription">
+                        <%= item.description %>
+                    </td>
+                    <td class="tdPublished">
+                        <%= item.published %>
+                    </td>
+                    <td>
+                        <button class="btnBuy" data-id="<%=item.id%>">Buy</button>
+                    </td>
+                </tr>
+                <% }); %>
+
+
+        </table>
+        <div id="updateForm" style="display:none; margin-top:20px; border:1px solid #ccc; padding:15px;">
+            <h3>Update tutorial</h3>
+
+            <input type="hidden" id="updateId">
+
+            <div style="margin-bottom:10px;">
+                <label>Title:</label><br>
+                <input type="text" id="updateTitle" style="width:300px;">
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <label>Description:</label><br>
+                <input type="text" id="updateDescription" style="width:300px;">
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <label>
+                    <input type="checkbox" id="updatePublished">
+                    Published
+                </label>
+            </div>
+
+            <button id="saveUpdate">Save</button>
+            <button id="cancelUpdate">Cancel</button>
+        </div>
+    </div>
+</body>
+
+</html>

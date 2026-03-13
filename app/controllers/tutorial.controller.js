@@ -1,5 +1,6 @@
 const db = require("../models");
 const Tutorial = db.tutorials;
+const Order = db.orders;
 const Op = db.Sequelize.Op;
 
 module.exports = {
@@ -29,6 +30,52 @@ module.exports = {
     return res.redirect('/tutorials')
 
   },
+
+  // go to  Main sales page
+  getHomesalePage: async (req, res) => {
+    let tutorials = await Tutorial.findAll();
+    return res.render('homepage.ejs', { tutorials })
+  },
+
+  getBuyPage: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const tutorial = await Tutorial.findByPk(id);
+
+      if (!tutorial) {
+        return res.status(404).send(`Cannot find tutorial with id=${id}`);
+      }
+
+      return res.render("buypage.ejs", { tutorial });
+    } catch (error) {
+      return res.status(500).send("Server error");
+    }
+  },
+
+  buyTutorial: async (req, res) => {
+  try {
+    console.log("req.body =", req.body);
+    console.log("Order =", Order);
+
+    const { tutorialId, title, quantity } = req.body;
+
+    const order = await Order.create({
+      tutorialId,
+      title,
+      quantity
+    });
+
+    return res.json({
+      message: "Buy success",
+      order
+    });
+  } catch (error) {
+    console.log("buyTutorial error =", error);
+    return res.status(500).json({
+      message: "Error when buying tutorial"
+    });
+  }
+},
 
   getCreate: (req, res) => {
     return res.render('create.ejs')

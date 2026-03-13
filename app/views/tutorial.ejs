@@ -125,14 +125,14 @@
                         <%= item.id %>
                     </td>
                     <td class="tdTitle">
-    <%= item.title %>
-</td>
-<td class="tdDescription">
-    <%= item.description %>
-</td>
-<td class="tdPublished">
-    <%= item.published %>
-</td>
+                        <%= item.title %>
+                    </td>
+                    <td class="tdDescription">
+                        <%= item.description %>
+                    </td>
+                    <td class="tdPublished">
+                        <%= item.published %>
+                    </td>
                     <td>
                         <button class="btnUpdate" data-id="<%=item.id%>">Update</button>
                         <button class="btnDelete" data-id="<%=item.id%>">Delete</button>
@@ -143,30 +143,30 @@
 
         </table>
         <div id="updateForm" style="display:none; margin-top:20px; border:1px solid #ccc; padding:15px;">
-    <h3>Update tutorial</h3>
+            <h3>Update tutorial</h3>
 
-    <input type="hidden" id="updateId">
+            <input type="hidden" id="updateId">
 
-    <div style="margin-bottom:10px;">
-        <label>Title:</label><br>
-        <input type="text" id="updateTitle" style="width:300px;">
-    </div>
+            <div style="margin-bottom:10px;">
+                <label>Title:</label><br>
+                <input type="text" id="updateTitle" style="width:300px;">
+            </div>
 
-    <div style="margin-bottom:10px;">
-        <label>Description:</label><br>
-        <input type="text" id="updateDescription" style="width:300px;">
-    </div>
+            <div style="margin-bottom:10px;">
+                <label>Description:</label><br>
+                <input type="text" id="updateDescription" style="width:300px;">
+            </div>
 
-    <div style="margin-bottom:10px;">
-        <label>
-            <input type="checkbox" id="updatePublished">
-            Published
-        </label>
-    </div>
+            <div style="margin-bottom:10px;">
+                <label>
+                    <input type="checkbox" id="updatePublished">
+                    Published
+                </label>
+            </div>
 
-    <button id="saveUpdate">Save</button>
-    <button id="cancelUpdate">Cancel</button>
-</div>
+            <button id="saveUpdate">Save</button>
+            <button id="cancelUpdate">Cancel</button>
+        </div>
     </div>
 </body>
 

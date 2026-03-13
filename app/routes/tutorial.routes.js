@@ -1,5 +1,5 @@
 const { create, getCreate, findOne, update,
-  getAll
+  getAll,getHomesalePage,getBuyPage, buyTutorial
 
 } = require("../controllers/tutorial.controller");
 
@@ -13,11 +13,21 @@ module.exports = app => {
 
   router.get("/create", getCreate);
 
+  // Main sales page
+  router.get("/homePage", getHomesalePage);
+  // buy a Tutorial with id
+  router.get("/homePage/:id", getBuyPage);
+
   // Retrieve a single Tutorial with id
   router.get("/:id", findOne);
 
   // Update a Tutorial with id
   router.put("/:id", update);
 
+  // buy a Tutorial
+  router.post("/buy", buyTutorial);
+
   app.use('/tutorials', router);
+
+  
 };
