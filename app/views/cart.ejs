@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <style>
+    #buyModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    #buyModal .modal-content {
+      width: 400px;
+      background: #fff;
+      margin: 100px auto;
+      padding: 20px;
+      border-radius: 8px;
+    }
+  </style>
+
+  <script>
+    $(document).ready(function () {
+      $("#btnBuyCart").click(function () {
+        $("#buyTotal").val("<%= total %>");
+        $("#buyEmail").val("");
+        $("#buyPhone").val("");
+        $("#buyModal").show();
+      });
+
+      $("#closeBuyModal").click(function () {
+        $("#buyModal").hide();
+      });
+
+      $("#confirmBuy").click(function () {
+        const email = $("#buyEmail").val();
+        const phone = $("#buyPhone").val();
+
+        if (!email || !phone) {
+          alert("Vui lòng nhập email và số điện thoại");
+          return;
+        }
+
+        $.ajax({
+          url: "/cart/checkout",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            email: email,
+            phone: phone
+          }),
+          success: function (result) {
+            alert("Thanh toán thành công!");
+            $("#buyModal").hide();
+            window.location.href = "/cart";
+          },
+          error: function (error) {
+            console.log(error);
+            alert("Thanh toán thất bại!");
+          }
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <h2>Giỏ hàng của bạn</h2>
+
+  <div style="margin-bottom: 15px;">
+    <a href="/homepage">Quay lại mua hàng</a>
+  </div>
+
+  <% if (cartItems.length === 0) { %>
+    <p>Giỏ hàng trống</p>
+  <% } else { %>
+    <table border="1" cellpadding="10" cellspacing="0">
+      <tr>
+        <th>Tên sản phẩm</th>
+        <th>Giá</th>
+        <th>Số lượng</th>
+        <th>Thành tiền</th>
+        <th>Hành động</th>
+      </tr>
+
+      <% cartItems.forEach(item => { %>
+        <tr>
+          <td><%= item.tutorial.title %></td>
+          <td><%= item.tutorial.price %></td>
+          <td>
+            <form action="/cart/update" method="POST">
+              <input type="hidden" name="itemId" value="<%= item.id %>">
+              <input type="number" name="quantity" value="<%= item.quantity %>" min="1">
+              <button type="submit">Cập nhật</button>
+            </form>
+          </td>
+          <td><%= item.quantity * item.tutorial.price %></td>
+          <td>
+            <form action="/cart/remove" method="POST">
+              <input type="hidden" name="itemId" value="<%= item.id %>">
+              <button type="submit">Xóa</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </table>
+
+    <h3>Tổng tiền: <%= total %></h3>
+
+    <button id="btnBuyCart">Buy</button>
+  <% } %>
+
+  <div id="buyModal">
+    <div class="modal-content">
+      <h3>Thanh toán giỏ hàng</h3>
+
+      <div style="margin-bottom:10px;">
+        <label>Tổng tiền:</label><br>
+        <input type="text" id="buyTotal" readonly style="width:100%;">
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label>Email:</label><br>
+        <input type="email" id="buyEmail" style="width:100%;">
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label>Số điện thoại:</label><br>
+        <input type="text" id="buyPhone" style="width:100%;">
+      </div>
+
+      <button id="confirmBuy">Confirm</button>
+      <button id="closeBuyModal">Close</button>
+    </div>
+  </div>
+</body>
+</html>

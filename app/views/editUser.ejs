@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sửa tài khoản</title>
+</head>
+<body>
+  <h2>Sửa tài khoản</h2>
+
+  <form action="/admin/users/update/<%= user.id %>" method="POST">
+    <div>
+      <label>Tài khoản:</label>
+      <input type="text" name="tk" value="<%= user.tk %>" required>
+    </div>
+
+    <div>
+      <label>Email:</label>
+      <input type="email" name="email" value="<%= user.email %>" required>
+    </div>
+
+    <div>
+      <label>Mật khẩu:</label>
+      <input type="text" name="mk" value="<%= user.mk %>" required>
+    </div>
+
+    <div>
+      <label>Role:</label>
+      <select name="role">
+        <option value="user" <%= user.role === "user" ? "selected" : "" %>>user</option>
+        <option value="admin" <%= user.role === "admin" ? "selected" : "" %>>admin</option>
+      </select>
+    </div>
+
+    <button type="submit">Cập nhật</button>
+  </form>
+
+  <br>
+  <a href="/admin/users">Quay lại</a>
+</body>
+</html>

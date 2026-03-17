@@ -1,0 +1,83 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Page</title>
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+        background-color: #ccc;
+    }
+
+    body {
+        padding: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $(".btnBuy").click(function () {
+            const id = $(this).attr("data-id");
+            window.location.href = `${window.location.origin}/homepage/${id}`;
+        });
+    });
+</script>
+
+<body>
+    <div style="margin-bottom: 15px;">
+        <a href="/cart">Xem giỏ hàng</a>
+        <a href="/logout" style="margin-left: 15px;">Đăng xuất</a>
+    </div>
+
+    <div>
+        <h3>List tutorials</h3>
+        <table>
+            <tr>
+                <th>Ảnh</th>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Published</th>
+                <th>Action</th>
+            </tr>
+
+            <% tutorials.forEach(function(item) { %>
+                <tr>
+                    <td>
+                        <img src="/image/<%= item.id %>.jpg" alt="tutorial image" width="80">
+                    </td>
+                    <td><%= item.id %></td>
+                    <td><%= item.title %></td>
+                    <td><%= item.description %></td>
+                    <td><%= item.price %></td>
+                    <td><%= item.published %></td>
+                    <td>
+                        <button class="btnBuy" data-id="<%= item.id %>" <%= item.published ? "" : "disabled" %>>
+                            Buy
+                        </button>
+                    </td>
+                </tr>
+            <% }) %>
+        </table>
+    </div>
+</body>
+
+</html>

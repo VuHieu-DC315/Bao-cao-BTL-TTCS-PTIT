@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý tài khoản</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      margin: 5px 0;
+      padding: 6px;
+    }
+    a {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Quản lý tài khoản</h2>
+
+  <a href="/admin">Quay lại admin</a>
+
+  <h3>Thêm tài khoản mới</h3>
+  <form action="/admin/users/create" method="POST">
+    <div>
+      <label>Tài khoản:</label>
+      <input type="text" name="tk" required>
+    </div>
+    <div>
+      <label>Email:</label>
+      <input type="email" name="email" required>
+    </div>
+    <div>
+      <label>Mật khẩu:</label>
+      <input type="text" name="mk" required>
+    </div>
+    <div>
+      <label>Role:</label>
+      <select name="role">
+        <option value="user">user</option>
+        <option value="admin">admin</option>
+      </select>
+    </div>
+    <button type="submit">Thêm tài khoản</button>
+  </form>
+
+  <h3>Danh sách tài khoản</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tài khoản</th>
+        <th>Email</th>
+        <th>Mật khẩu</th>
+        <th>Role</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.id %></td>
+          <td><%= user.tk %></td>
+          <td><%= user.email %></td>
+          <td><%= user.mk %></td>
+          <td><%= user.role %></td>
+          <td>
+            <a href="/admin/users/edit/<%= user.id %>">Sửa</a>
+            <a href="/admin/users/delete/<%= user.id %>" onclick="return confirm('Bạn có chắc muốn xóa không?')">Xóa</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>

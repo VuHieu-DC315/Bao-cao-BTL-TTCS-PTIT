@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            padding: 10px;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        .top-links {
+            margin-bottom: 20px;
+        }
+
+        .top-links a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-links">
+        <a href="/admin">Về trang admin</a>
+        <a href="/tutorials">Quản lý tutorial</a>
+        <a href="/logout">Đăng xuất</a>
+    </div>
+
+    <h2>Danh sách orders</h2>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Tutorial ID</th>
+            <th>Title</th>
+            <th>Quantity</th>
+            <th>Email</th>
+            <th>Phone</th>
+        </tr>
+
+        <% orders.forEach(function(item) { %>
+            <tr>
+                <td>
+                    <%= item.id %>
+                </td>
+                <td>
+                    <%= item.tutorialId %>
+                </td>
+                <td>
+                    <%= item.title %>
+                </td>
+                <td>
+                    <%= item.quantity %>
+                </td>
+                <td>
+                    <%= item.email %>
+                </td>
+                <td>
+                    <%= item.phone %>
+                </td>
+            </tr>
+            <% }) %>
+    </table>
+</body>
+
+</html>

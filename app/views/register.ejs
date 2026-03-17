@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: #fff;
+      width: 420px;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    .message {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .error {
+      background: #fde8e8;
+      color: #b42318;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 14px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      background: #16a34a;
+      color: white;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      color: #475467;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Đăng ký tài khoản</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="message error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/register">
+      <div>
+        <label>Tài khoản:</label>
+        <input type="text" name="tk" placeholder="Nhập tài khoản" required>
+      </div>
+      <div>
+        <label>Email:</label>
+        <input type="email" name="email" placeholder="Nhập email" required>
+      </div>
+      <div>
+        <label>Mật khẩu:</label>
+        <input type="password" name="mk" placeholder="Nhập mật khẩu" required>
+      </div>
+      <div>
+        <label>Nhập lại mật khẩu:</label>
+        <input type="password" name="confirmMk" placeholder="Nhập lại mật khẩu" required>
+      </div>
+      <button type="submit">Tạo tài khoản</button>
+    </form>
+
+    <a class="back-link" href="/login">Đã có tài khoản? Đăng nhập</a>
+  </div>
+</body>
+</html>
