@@ -31,6 +31,7 @@ const db = require("./models");
 const User = db.users;
 const Op = db.Sequelize.Op;
 const cartRouter = require("./routes/cart.router");
+const announcementRouter = require("./routes/announcement.router");
 
 const renderView = (res, viewName, data = {}) => {
   return res.render(viewName, data, (err, html) => {
@@ -194,6 +195,7 @@ require("./routes/tutorial.routes")(app);
 require("./routes/tutorial.api")(app);
 require("./routes/user.routes")(app);
 app.use("/cart", cartRouter);
+app.use("/announcements", announcementRouter);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách thông báo</title>
+</head>
+<body>
+  <h1>Tất cả thông báo</h1>
+
+  <% if (announcements && announcements.length > 0) { %>
+    <% announcements.forEach(function(item) { %>
+      <div style="border:1px solid #ddd; padding:16px; margin-bottom:16px; border-radius:8px;">
+        <h2><%= item.title %></h2>
+        <p><%= item.content %></p>
+
+        <% if (item.isPermanent) { %>
+          <p>Thông báo vĩnh viễn</p>
+        <% } else { %>
+          <p>
+            Từ: <%= item.startDateVN || "Không giới hạn" %> -
+            Đến: <%= item.endDateVN || "Không giới hạn" %>
+          </p>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>Hiện chưa có thông báo nào.</p>
+  <% } %>
+
+  <a href="/homepage">Quay lại trang chủ</a>
+</body>
+</html>

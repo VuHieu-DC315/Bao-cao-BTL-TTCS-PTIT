@@ -11,6 +11,13 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     min: dbConfig.pool.min,
     acquire: dbConfig.pool.acquire,
     idle: dbConfig.pool.idle
+  },
+  dialectOptions: {
+    charset: "utf8mb4"
+  },
+  define: {
+    charset: "utf8mb4",
+    collate: "utf8mb4_unicode_ci"
   }
 });
 
@@ -22,8 +29,10 @@ db.sequelize = sequelize;
 db.tutorials = require("./tutorial.model.js")(sequelize, Sequelize);
 db.orders = require("./order.model.js")(sequelize, Sequelize);
 db.users = require("./user.model.js")(sequelize, Sequelize);
+db.announcements = require("./announcement.model.js")(sequelize, Sequelize);
 db.carts = require("./cart.model.js")(sequelize, Sequelize);
 db.cartItems = require("./cartItem.model.js")(sequelize, Sequelize);
+
 db.users.hasOne(db.carts, { foreignKey: "userId" });
 db.carts.belongsTo(db.users, { foreignKey: "userId" });
 
