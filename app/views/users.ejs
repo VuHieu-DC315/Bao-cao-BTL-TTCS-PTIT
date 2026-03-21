@@ -1,87 +1,241 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quản lý tài khoản</title>
-  <style>
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    form {
-      margin-bottom: 20px;
-    }
-    input, select, button {
-      margin: 5px 0;
-      padding: 6px;
-    }
-    a {
-      margin-right: 10px;
-    }
-  </style>
+
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/users.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <h2>Quản lý tài khoản</h2>
+  <header class="topbar">
+    <div class="topbar-container">
+      <a href="/" class="brand-logo" aria-label="Trang chủ">
+        <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+        <div class="brand-logo-text">
+          <span class="brand-main">PShop</span>
+          <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
+        </div>
+      </a>
 
-  <a href="/admin">Quay lại admin</a>
+      <div class="topbar-actions">
+        <a href="/admin" class="topbar-link">Quay lại trang admin</a>
+      </div>
+    </div>
+  </header>
 
-  <h3>Thêm tài khoản mới</h3>
-  <form action="/admin/users/create" method="POST">
-    <div>
-      <label>Tài khoản:</label>
-      <input type="text" name="tk" required>
-    </div>
-    <div>
-      <label>Email:</label>
-      <input type="email" name="email" required>
-    </div>
-    <div>
-      <label>Mật khẩu:</label>
-      <input type="text" name="mk" required>
-    </div>
-    <div>
-      <label>Role:</label>
-      <select name="role">
-        <option value="user">user</option>
-        <option value="admin">admin</option>
-      </select>
-    </div>
-    <button type="submit">Thêm tài khoản</button>
-  </form>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-left">
+        <p class="hero-tag">QUẢN LÝ NGƯỜI DÙNG</p>
+        <h1>Danh sách tài khoản hệ thống</h1>
+        <p class="hero-desc">
+          Theo dõi, tìm kiếm và quản lý quyền truy cập của tài khoản trên website bán đồ điện tử.
+        </p>
+      </div>
 
-  <h3>Danh sách tài khoản</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Tài khoản</th>
-        <th>Email</th>
-        <th>Mật khẩu</th>
-        <th>Role</th>
-        <th>Hành động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% users.forEach(user => { %>
-        <tr>
-          <td><%= user.id %></td>
-          <td><%= user.tk %></td>
-          <td><%= user.email %></td>
-          <td><%= user.mk %></td>
-          <td><%= user.role %></td>
-          <td>
-            <a href="/admin/users/edit/<%= user.id %>">Sửa</a>
-            <a href="/admin/users/delete/<%= user.id %>" onclick="return confirm('Bạn có chắc muốn xóa không?')">Xóa</a>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <span class="stat-label">Tổng tài khoản</span>
+          <strong class="stat-value"><%= users.length %></strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Khu vực</span>
+          <strong class="stat-value">Quản trị người dùng</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="card-head">
+        <div>
+          <h2>Danh sách tài khoản</h2>
+          <p>Quản lý thông tin đăng nhập và vai trò người dùng trong hệ thống</p>
+        </div>
+
+        <div class="card-tools">
+          <div class="search-box">
+            <input
+              type="text"
+              id="userSearch"
+              placeholder="Tìm theo tài khoản, email, vai trò hoặc ID..."
+            />
+          </div>
+
+          <button type="button" class="primary-btn add-user-btn" id="openCreateModal">
+            + Thêm tài khoản mới
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tài khoản</th>
+              <th>Email</th>
+              <th>Mật khẩu</th>
+              <th>Vai trò</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <% users.forEach(user => { %>
+              <tr
+                data-id="<%= user.id %>"
+                data-tk="<%= (user.tk || '').toLowerCase() %>"
+                data-email="<%= (user.email || '').toLowerCase() %>"
+                data-role="<%= (user.role || '').toLowerCase() %>"
+              >
+                <td>
+                  <span class="id-badge">#<%= user.id %></span>
+                </td>
+                <td class="username-cell"><%= user.tk %></td>
+                <td class="email-cell"><%= user.email %></td>
+                <td>
+                  <span class="password-mask">••••••••</span>
+                </td>
+                <td>
+                  <% if ((user.role || '').toLowerCase() === 'admin') { %>
+                    <span class="role-badge role-admin">Quản trị</span>
+                  <% } else { %>
+                    <span class="role-badge role-user">Người dùng</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="action-group">
+                    <a class="btn-action btn-edit" href="/admin/users/edit/<%= user.id %>">Sửa</a>
+                    <a
+                      class="btn-action btn-delete"
+                      href="/admin/users/delete/<%= user.id %>"
+                      onclick="return confirm('Bạn có chắc muốn xóa tài khoản này không?')"
+                    >
+                      Xóa
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+
+        <div id="emptySearch" class="empty-state" style="display: none;">
+          Không tìm thấy tài khoản phù hợp.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal thêm tài khoản -->
+  <div id="createUserModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button id="closeCreateModal" class="modal-close" type="button">&times;</button>
+
+      <div class="card-head modal-head">
+        <div>
+          <p class="modal-tag">THÊM TÀI KHOẢN</p>
+          <h2>Tạo tài khoản mới</h2>
+          <p>Thêm người dùng hoặc quản trị viên mới vào hệ thống</p>
+        </div>
+      </div>
+
+      <form action="/admin/users/create" method="POST" class="user-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="tk">Tài khoản</label>
+            <input id="tk" type="text" name="tk" placeholder="Nhập tên tài khoản" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" placeholder="Nhập email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="mk">Mật khẩu</label>
+            <input id="mk" type="text" name="mk" placeholder="Nhập mật khẩu" required />
+          </div>
+
+          <div class="form-group">
+            <label for="role">Phân quyền</label>
+            <select id="role" name="role">
+              <option value="user">Người dùng</option>
+              <option value="admin">Quản trị viên</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn modal-submit">+ Thêm tài khoản</button>
+          <button type="button" class="secondary-btn" id="cancelCreateModal">Hủy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById("openCreateModal");
+      const closeBtn = document.getElementById("closeCreateModal");
+      const cancelBtn = document.getElementById("cancelCreateModal");
+      const modal = document.getElementById("createUserModal");
+      const searchInput = document.getElementById("userSearch");
+      const tableBody = document.getElementById("userTableBody");
+      const rows = Array.from(tableBody.querySelectorAll("tr"));
+      const emptyState = document.getElementById("emptySearch");
+
+      function openModal() {
+        modal.style.display = "flex";
+        document.body.classList.add("modal-open");
+      }
+
+      function closeModal() {
+        modal.style.display = "none";
+        document.body.classList.remove("modal-open");
+      }
+
+      openBtn.addEventListener("click", openModal);
+      closeBtn.addEventListener("click", closeModal);
+      cancelBtn.addEventListener("click", closeModal);
+
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && modal.style.display === "flex") {
+          closeModal();
+        }
+      });
+
+      searchInput.addEventListener("input", function () {
+        const keyword = this.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+          const id = (row.dataset.id || "").toLowerCase();
+          const tk = row.dataset.tk || "";
+          const email = row.dataset.email || "";
+          const role = row.dataset.role || "";
+
+          const matched =
+            id.includes(keyword) ||
+            tk.includes(keyword) ||
+            email.includes(keyword) ||
+            role.includes(keyword);
+
+          row.style.display = matched ? "" : "none";
+          if (matched) visibleCount++;
+        });
+
+        emptyState.style.display = visibleCount === 0 ? "block" : "none";
+      });
+    })();
+  </script>
 </body>
 </html>
