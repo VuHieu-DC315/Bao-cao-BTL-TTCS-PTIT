@@ -1,7 +1,10 @@
 /* Modal popup chỉnh sửa sản phẩm */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   background: rgba(30, 34, 45, 0.32);
@@ -14,17 +17,23 @@
 .modal-box {
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
   padding: 32px 28px 22px 28px;
   min-width: 340px;
   max-width: 98vw;
   width: 420px;
   position: relative;
-  animation: modalPopIn 0.18s cubic-bezier(.4,1.4,.6,1) both;
+  animation: modalPopIn 0.18s cubic-bezier(0.4, 1.4, 0.6, 1) both;
 }
 @keyframes modalPopIn {
-  0% { transform: scale(0.92) translateY(40px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0% {
+    transform: scale(0.92) translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 .modal-close {
   position: absolute;
