@@ -13,20 +13,22 @@ const {
 module.exports = app => {
   const router = require("express").Router();
 
-  // Admin routes
+  // Admin product pages
   router.get("/", getAll);
-  router.get("/create", getCreate);
-  router.post("/create", create);
+  router.get("/new", getCreate);
+  router.post("/", create);
   router.get("/:id", findOne);
   router.put("/:id", update);
 
-  app.use("/tutorials", router);
+  app.use("/admin/products", router);
 
-  // User routes
-  app.get("/homepage", getHomesalePage);
-  app.get("/homepage/:id", getBuyPage);
-  app.post("/buy", buyTutorial);
+  // Public shop pages
+  app.get("/shop", getHomesalePage);
+  app.get("/products/:id", getBuyPage);
 
-  //admin get orders  
-  app.get("/orders", getAllOrders);
+  // Create order from buy page
+  app.post("/orders", buyTutorial);
+
+  // Admin orders page
+  app.get("/admin/orders", getAllOrders);
 };

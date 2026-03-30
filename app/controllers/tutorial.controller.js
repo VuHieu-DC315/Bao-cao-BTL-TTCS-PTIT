@@ -19,7 +19,7 @@ module.exports = {
     };
 
     await Tutorial.create(tutorial);
-    return res.redirect("/tutorials");
+    return res.redirect("/admin/products");
   },
 
   getHomesalePage: async (req, res) => {

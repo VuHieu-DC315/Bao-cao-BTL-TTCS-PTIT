@@ -10,9 +10,9 @@ function checkLogin(req, res, next) {
 }
 
 router.get("/", checkLogin, cartController.getCartPage);
-router.post("/add", checkLogin, cartController.addToCart);
-router.post("/update", checkLogin, cartController.updateQuantity);
-router.post("/remove", checkLogin, cartController.removeItem);
+router.post("/items", checkLogin, cartController.addToCart);
+router.post("/items/update", checkLogin, cartController.updateQuantity);
+router.post("/items/delete", checkLogin, cartController.removeItem);
 router.post("/checkout", checkLogin, cartController.checkoutCart);
 
 module.exports = router;

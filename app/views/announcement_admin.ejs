@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Quản lý thông báo</title>
@@ -17,7 +18,9 @@
       border-radius: 8px;
     }
 
-    input, textarea, button {
+    input,
+    textarea,
+    button {
       width: 100%;
       padding: 10px;
       margin-bottom: 12px;
@@ -32,11 +35,12 @@
     }
   </style>
 </head>
+
 <body>
   <div class="box">
     <h2>Quản lý thông báo</h2>
 
-    <form method="POST" action="/announcements/create">
+    <form method="POST" action="/announcements/admin/announcements">
       <label>Tiêu đề</label>
       <input type="text" name="title" required>
 
@@ -61,22 +65,30 @@
 
     <h3>Danh sách thông báo</h3>
 
-    <% if (announcements && announcements.length > 0) { %>
+    <% if (announcements && announcements.length> 0) { %>
       <% announcements.forEach(function(item) { %>
         <div class="announcement-item">
-          <h4><%= item.title %></h4>
-          <p><%= item.content %></p>
-          <p>Bắt đầu: <%= item.startDate ? item.startDate : "Không có" %></p>
-          <p>Kết thúc: <%= item.endDate ? item.endDate : "Không có" %></p>
-          <p>Vô thời hạn: <%= item.isPermanent ? "Có" : "Không" %></p>
+          <h4>
+            <%= item.title %>
+          </h4>
+          <p>
+            <%= item.content %>
+          </p>
+          <p>Bắt đầu: <%= item.startDate ? item.startDate : "Không có" %>
+          </p>
+          <p>Kết thúc: <%= item.endDate ? item.endDate : "Không có" %>
+          </p>
+          <p>Vô thời hạn: <%= item.isPermanent ? "Có" : "Không" %>
+          </p>
         </div>
-      <% }) %>
-    <% } else { %>
-      <p>Chưa có thông báo nào.</p>
-    <% } %>
+        <% }) %>
+          <% } else { %>
+            <p>Chưa có thông báo nào.</p>
+            <% } %>
 
-    <br>
-    <a href="/admin">Quay lại trang admin</a>
+              <br>
+              <a href="/admin">Quay lại trang admin</a>
   </div>
 </body>
+
 </html>

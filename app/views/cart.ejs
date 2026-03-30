@@ -73,7 +73,7 @@
   <h2>Giỏ hàng của bạn</h2>
 
   <div style="margin-bottom: 15px;">
-    <a href="/homepage">Quay lại mua hàng</a>
+    <a href="/shop">Quay lại mua hàng</a>
   </div>
 
   <% if (cartItems.length === 0) { %>
@@ -93,7 +93,7 @@
           <td><%= item.tutorial.title %></td>
           <td><%= item.tutorial.price %></td>
           <td>
-            <form action="/cart/update" method="POST">
+            <form action="/cart/items/update" method="POST">
               <input type="hidden" name="itemId" value="<%= item.id %>">
               <input type="number" name="quantity" value="<%= item.quantity %>" min="1">
               <button type="submit">Cập nhật</button>
@@ -101,7 +101,7 @@
           </td>
           <td><%= item.quantity * item.tutorial.price %></td>
           <td>
-            <form action="/cart/remove" method="POST">
+            <form action="/cart/items/delete" method="POST">
               <input type="hidden" name="itemId" value="<%= item.id %>">
               <button type="submit">Xóa</button>
             </form>

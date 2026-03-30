@@ -66,13 +66,15 @@
                 }
 
                 $.ajax({
-                    url: "/buy",
+                    url: "/orders",
                     method: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({
                         tutorialId: tutorialId,
                         title: title,
-                        quantity: quantity
+                        quantity: quantity,
+                        email: email,
+                        phone: phone
                     }),
                     success: function (result) {
                         alert("Buy success!");
@@ -104,7 +106,7 @@
     <p>Price: <%= tutorial.price %>
     </p>
 
-    <form action="/cart/add" method="POST">
+    <form action="/cart/items" method="POST">
         <input type="hidden" name="tutorialId" value="<%= tutorial.id %>">
         <button type="submit" <%=tutorial.published ? "" : "disabled" %>>
             Thêm vào giỏ

@@ -48,7 +48,7 @@ const isValidEmail = (email) => {
 };
 
 db.sequelize
-  .sync({ alter: true })
+  .sync()
   .then(() => {
     console.log("Synced database.");
   })
@@ -95,7 +95,7 @@ app.post("/login", async (req, res) => {
     if (user.role === "admin") {
       return res.redirect("/admin");
     } else {
-      return res.redirect("/homepage");
+      return res.redirect("/shop");
     }
   } catch (error) {
     console.log("Login error:", error);
