@@ -1,94 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quản lý thông báo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-    }
-
-    .box {
-      width: 700px;
-      margin: 0 auto;
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    input,
-    textarea,
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-    }
-
-    .announcement-item {
-      border: 1px solid #ddd;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 6px;
-    }
-  </style>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/announcement_admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <div class="box">
-    <h2>Quản lý thông báo</h2>
+  <header class="topbar">
+      <div class="topbar-container">
+          <a href="/" class="brand-logo" aria-label="Trang chủ">
+              <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+              <div class="brand-logo-text single">
+                  <span class="brand-main">PShop</span>
+              </div>
+          </a>
+      </div>
+  </header>
 
-    <form method="POST" action="/announcements/admin/announcements">
-      <label>Tiêu đề</label>
-      <input type="text" name="title" required>
+  <main class="page">
+    <div class="box">
+      <h2>Quản lý thông báo</h2>
 
-      <label>Nội dung</label>
-      <textarea name="content" rows="4" required></textarea>
-
-      <label>Ngày bắt đầu</label>
-      <input type="datetime-local" name="startDate">
-
-      <label>Ngày kết thúc</label>
-      <input type="datetime-local" name="endDate">
-
-      <label style="display:block; margin-bottom:12px;">
-        <input type="checkbox" name="isPermanent" style="width:auto;">
-        Thông báo vô thời hạn
-      </label>
-
-      <button type="submit">Đăng thông báo</button>
-    </form>
-
-    <hr>
-
-    <h3>Danh sách thông báo</h3>
-
-    <% if (announcements && announcements.length> 0) { %>
-      <% announcements.forEach(function(item) { %>
-        <div class="announcement-item">
-          <h4>
-            <%= item.title %>
-          </h4>
-          <p>
-            <%= item.content %>
-          </p>
-          <p>Bắt đầu: <%= item.startDate ? item.startDate : "Không có" %>
-          </p>
-          <p>Kết thúc: <%= item.endDate ? item.endDate : "Không có" %>
-          </p>
-          <p>Vô thời hạn: <%= item.isPermanent ? "Có" : "Không" %>
-          </p>
+      <form method="POST" action="/announcements/admin/announcements">
+        <div class="form-group">
+          <label>Tiêu đề</label>
+          <input type="text" name="title" required>
         </div>
-        <% }) %>
-          <% } else { %>
-            <p>Chưa có thông báo nào.</p>
-            <% } %>
 
-              <br>
-              <a href="/admin">Quay lại trang admin</a>
-  </div>
+        <div class="form-group">
+          <label>Nội dung</label>
+          <textarea name="content" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Ngày bắt đầu</label>
+          <input type="datetime-local" name="startDate">
+        </div>
+
+        <div class="form-group">
+          <label>Ngày kết thúc</label>
+          <input type="datetime-local" name="endDate">
+        </div>
+
+        <label class="checkbox-label">
+          <input type="checkbox" name="isPermanent">
+          Thông báo vô thời hạn
+        </label>
+
+        <button type="submit" class="submit-btn">Đăng thông báo</button>
+      </form>
+
+      <hr>
+
+      <h3>Danh sách thông báo</h3>
+
+      <% if (announcements && announcements.length > 0) { %>
+        <% announcements.forEach(function(item) { %>
+          <div class="announcement-item">
+            <h4><%= item.title %></h4>
+            <p><%= item.content %></p>
+            <p><strong>Bắt đầu:</strong> <%= item.startDate ? item.startDate : "Không có" %></p>
+            <p><strong>Kết thúc:</strong> <%= item.endDate ? item.endDate : "Không có" %></p>
+            <p><strong>Vô thời hạn:</strong> <%= item.isPermanent ? "Có" : "Không" %></p>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p class="empty-msg">Chưa có thông báo nào.</p>
+      <% } %>
+
+      <a href="/admin" class="back-link">Quay lại trang admin</a>
+    </div>
+  </main>
 </body>
 
 </html>

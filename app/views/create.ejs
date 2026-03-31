@@ -1,59 +1,66 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create</title>
+    <title>Create Tutorial</title>
+    <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+    <link rel="stylesheet" href="/css/create.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<style>
-    .create-container {
-        max-width: 400px;
-        margin: 0 auto;
-        padding-top: 100px;
-    }
-
-    .form-group {
-        gap: 15px;
-        display: flex;
-        margin-bottom: 15px;
-    }
-
-    button {
-        cursor: pointer;
-    }
-</style>
 
 <body>
-    <div class="create-container">
-        <form method="POST" action="/admin/products">
-            <fieldset>
-                <legend>Create Tutorial</legend>
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" name="title" />
+    <header class="topbar">
+        <div class="topbar-container">
+            <a href="/" class="brand-logo" aria-label="Trang chủ">
+                <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+                <div class="brand-logo-text single">
+                    <span class="brand-main">PShop</span>
                 </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" name="description" />
-                </div>
-                <div class="form-group">
-                    <label>Price</label>
-                    <input type="number" name="price" min="0" />
-                </div>
-                <div class="form-group">
-                    <label>Public now :</label>
-                    <select name="published">
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </select>
-                </div>
-                <div>
-                    <button type="submit"> Save </button>
-                </div>
-            </fieldset>
-        </form>
-    </div>
+            </a>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="create-container">
+            <form method="POST" action="/admin/products">
+                <fieldset>
+                    <legend>Tạo sản phẩm mới</legend>
+                    
+                    <div class="form-group">
+                        <label>Tên sản phẩm (Title)</label>
+                        <input type="text" name="title" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mô tả (Description)</label>
+                        <input type="text" name="description" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Giá (Price)</label>
+                        <input type="number" name="price" min="0" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Trạng thái (Published)</label>
+                        <select name="published">
+                            <option value="true">Đang bán</option>
+                            <option value="false">Chưa bán</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Lưu sản phẩm</button>
+                    
+                    <a href="/admin/products" class="back-link">Quay lại danh sách</a>
+                </fieldset>
+            </form>
+        </div>
+    </main>
 </body>
 
 </html>

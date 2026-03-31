@@ -1,32 +1,55 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Danh sách thông báo</title>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/announcements.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <h1>Tất cả thông báo</h1>
-
-  <% if (announcements && announcements.length > 0) { %>
-    <% announcements.forEach(function(item) { %>
-      <div style="border:1px solid #ddd; padding:16px; margin-bottom:16px; border-radius:8px;">
-        <h2><%= item.title %></h2>
-        <p><%= item.content %></p>
-
-        <% if (item.isPermanent) { %>
-          <p>Thông báo vĩnh viễn</p>
-        <% } else { %>
-          <p>
-            Từ: <%= item.startDateVN || "Không giới hạn" %> -
-            Đến: <%= item.endDateVN || "Không giới hạn" %>
-          </p>
-        <% } %>
+  <header class="topbar">
+      <div class="topbar-container">
+          <a href="/" class="brand-logo" aria-label="Trang chủ">
+              <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+              <div class="brand-logo-text single">
+                  <span class="brand-main">PShop</span>
+              </div>
+          </a>
       </div>
-    <% }) %>
-  <% } else { %>
-    <p>Hiện chưa có thông báo nào.</p>
-  <% } %>
+  </header>
 
-  <a href="/shop">Quay lại trang chủ</a>
+  <main class="page">
+    <div class="page-header">
+      <h1>Tất cả thông báo</h1>
+    </div>
+
+    <% if (announcements && announcements.length > 0) { %>
+      <% announcements.forEach(function(item) { %>
+        <div class="announcement-card">
+          <h2><%= item.title %></h2>
+          <div class="content"><%= item.content %></div>
+
+          <div class="meta-info">
+            <% if (item.isPermanent) { %>
+              Thông báo vĩnh viễn
+            <% } else { %>
+              Từ: <%= item.startDateVN || "Không giới hạn" %> - Đến: <%= item.endDateVN || "Không giới hạn" %>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="empty-msg">Hiện chưa có thông báo nào.</div>
+    <% } %>
+
+    <a href="/shop" class="back-link">Quay lại trang chủ</a>
+  </main>
 </body>
+
 </html>

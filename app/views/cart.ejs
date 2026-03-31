@@ -1,29 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Giỏ hàng</title>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/cart.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-  <style>
-    #buyModal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    #buyModal .modal-content {
-      width: 400px;
-      background: #fff;
-      margin: 100px auto;
-      padding: 20px;
-      border-radius: 8px;
-    }
-  </style>
 
   <script>
     $(document).ready(function () {
@@ -70,72 +56,92 @@
   </script>
 </head>
 <body>
-  <h2>Giỏ hàng của bạn</h2>
+  <header class="topbar">
+      <div class="topbar-container">
+          <a href="/" class="brand-logo" aria-label="Trang chủ">
+              <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+              <div class="brand-logo-text single">
+                  <span class="brand-main">PShop</span>
+              </div>
+          </a>
+      </div>
+  </header>
 
-  <div style="margin-bottom: 15px;">
-    <a href="/shop">Quay lại mua hàng</a>
-  </div>
+  <main class="page">
+    <div class="page-header">
+      <h2>Giỏ hàng của bạn</h2>
+      <a href="/shop" class="back-link">← Quay lại mua hàng</a>
+    </div>
 
-  <% if (cartItems.length === 0) { %>
-    <p>Giỏ hàng trống</p>
-  <% } else { %>
-    <table border="1" cellpadding="10" cellspacing="0">
-      <tr>
-        <th>Tên sản phẩm</th>
-        <th>Giá</th>
-        <th>Số lượng</th>
-        <th>Thành tiền</th>
-        <th>Hành động</th>
-      </tr>
+    <div class="cart-container">
+      <% if (cartItems.length === 0) { %>
+        <div class="empty-cart">Giỏ hàng trống</div>
+      <% } else { %>
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Tên sản phẩm</th>
+              <th>Giá</th>
+              <th>Số lượng</th>
+              <th>Thành tiền</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cartItems.forEach(item => { %>
+              <tr>
+                <td class="product-title-cell"><%= item.tutorial.title %></td>
+                <td><%= item.tutorial.price %></td>
+                <td>
+                  <form action="/cart/items/update" method="POST" class="qty-form">
+                    <input type="hidden" name="itemId" value="<%= item.id %>">
+                    <input type="number" name="quantity" class="qty-input" value="<%= item.quantity %>" min="1">
+                    <button type="submit" class="btn-update">Cập nhật</button>
+                  </form>
+                </td>
+                <td class="line-total-cell"><%= item.quantity * item.tutorial.price %></td>
+                <td>
+                  <form action="/cart/items/delete" method="POST" class="delete-form">
+                    <input type="hidden" name="itemId" value="<%= item.id %>">
+                    <button type="submit" class="btn-delete">Xóa</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
 
-      <% cartItems.forEach(item => { %>
-        <tr>
-          <td><%= item.tutorial.title %></td>
-          <td><%= item.tutorial.price %></td>
-          <td>
-            <form action="/cart/items/update" method="POST">
-              <input type="hidden" name="itemId" value="<%= item.id %>">
-              <input type="number" name="quantity" value="<%= item.quantity %>" min="1">
-              <button type="submit">Cập nhật</button>
-            </form>
-          </td>
-          <td><%= item.quantity * item.tutorial.price %></td>
-          <td>
-            <form action="/cart/items/delete" method="POST">
-              <input type="hidden" name="itemId" value="<%= item.id %>">
-              <button type="submit">Xóa</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
-    </table>
-
-    <h3>Tổng tiền: <%= total %></h3>
-
-    <button id="btnBuyCart">Buy</button>
-  <% } %>
+        <div class="cart-footer">
+          <div class="cart-total">Tổng tiền: <span><%= total %>đ</span></div>
+          <button id="btnBuyCart" class="btn-buy">Thanh toán</button>
+        </div>
+      <% } %>
+    </div>
+  </main>
 
   <div id="buyModal">
     <div class="modal-content">
       <h3>Thanh toán giỏ hàng</h3>
 
-      <div style="margin-bottom:10px;">
-        <label>Tổng tiền:</label><br>
-        <input type="text" id="buyTotal" readonly style="width:100%;">
+      <div class="form-group">
+        <label>Tổng tiền:</label>
+        <input type="text" id="buyTotal" readonly>
       </div>
 
-      <div style="margin-bottom:10px;">
-        <label>Email:</label><br>
-        <input type="email" id="buyEmail" style="width:100%;">
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="buyEmail" placeholder="Nhập email của bạn">
       </div>
 
-      <div style="margin-bottom:10px;">
-        <label>Số điện thoại:</label><br>
-        <input type="text" id="buyPhone" style="width:100%;">
+      <div class="form-group">
+        <label>Số điện thoại:</label>
+        <input type="text" id="buyPhone" placeholder="Nhập số điện thoại">
       </div>
 
-      <button id="confirmBuy">Confirm</button>
-      <button id="closeBuyModal">Close</button>
+      <div class="modal-actions">
+        <button id="closeBuyModal">Hủy</button>
+        <button id="confirmBuy">Xác nhận</button>
+      </div>
     </div>
   </div>
 </body>

@@ -1,56 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Functions</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-    }
-
-    .box {
-      width: 400px;
-      margin: 0 auto;
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    .item {
-      margin-bottom: 15px;
-    }
-
-    a {
-      text-decoration: none;
-      color: blue;
-      font-size: 18px;
-    }
-  </style>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <div class="box">
-    <h2>Trang chức năng admin</h2>
+  <header class="topbar">
+      <div class="topbar-container">
+          <a href="/" class="brand-logo" aria-label="Trang chủ">
+              <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+              <div class="brand-logo-text single">
+                  <span class="brand-main">PShop</span>
+              </div>
+          </a>
+      </div>
+  </header>
 
-    <div class="item">
-      <a href="/admin/products">Quản lý tutorial</a>
-    </div>
+  <main class="page">
+    <div class="box">
+      <h2>Trang chức năng admin</h2>
 
-    <div class="item">
-      <a href="/admin/orders">Quản lý orders</a>
+      <div class="nav-grid">
+        <a href="/admin/products" class="nav-item">Quản lý tutorial</a>
+        <a href="/admin/orders" class="nav-item">Quản lý orders</a>
+        <a href="/admin/users" class="nav-item">Quản lý tài khoản</a>
+        <a href="/announcements/admin/announcements" class="nav-item">Quản lý thông báo</a>
+        <a href="/logout" class="nav-item logout">Đăng xuất</a>
+      </div>
     </div>
-    <div class="item">
-      <a href="/admin/users">Quản lý tài khoản</a>
-    </div>
-    <div class="item">
-      <a href="/announcements/admin/announcements">Quản lý thông báo</a>
-    </div>
-    <div class="item">
-      <a href="/logout">Đăng xuất</a>
-    </div>
-  </div>
+  </main>
 </body>
 
 </html>

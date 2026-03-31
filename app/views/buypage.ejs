@@ -1,35 +1,16 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Page</title>
+    <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+    <link rel="stylesheet" href="/css/buypage.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-    <style>
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        #buyModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        #buyModal .modal-content {
-            width: 400px;
-            background: #fff;
-            margin: 100px auto;
-            padding: 20px;
-            border-radius: 8px;
-        }
-    </style>
 
     <script>
         $(document).ready(function () {
@@ -92,68 +73,98 @@
 </head>
 
 <body>
-    <h3>Id: <%= tutorial.id %>
-    </h3>
-
-    <img src="/image/<%= tutorial.id %>.jpg" alt="tutorial image" width="200">
-
-    <p>Title: <%= tutorial.title %>
-    </p>
-    <p>Description: <%= tutorial.description %>
-    </p>
-    <p>Published: <%= tutorial.published %>
-    </p>
-    <p>Price: <%= tutorial.price %>
-    </p>
-
-    <form action="/cart/items" method="POST">
-        <input type="hidden" name="tutorialId" value="<%= tutorial.id %>">
-        <button type="submit" <%=tutorial.published ? "" : "disabled" %>>
-            Thêm vào giỏ
-        </button>
-    </form>
-
-    <div style="margin-top: 10px;">
-        <a href="/cart">Xem giỏ hàng</a>
-    </div>
-    <button class="btnBuy" data-id="<%= tutorial.id %>" data-title="<%= tutorial.title %>"
-        data-published="<%= tutorial.published %>" <%=tutorial.published ? "" : "disabled" %>
-        >
-        Buy
-    </button>
-
-    <div id="buyModal">
-        <div class="modal-content">
-            <h3>Buy product</h3>
-
-            <div style="margin-bottom:10px;">
-                <label>Id:</label><br>
-                <input type="text" id="buyId" readonly style="width:100%;">
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label>Title:</label><br>
-                <input type="text" id="buyTitle" readonly style="width:100%;">
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label>Quantity:</label><br>
-                <input type="number" id="buyQuantity" value="1" min="1" style="width:100%;">
-            </div>
-            <div style="margin-bottom:10px;">
-                <label>Email:</label><br>
-                <input type="email" id="buyEmail" style="width:100%;">
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label>Phone:</label><br>
-                <input type="text" id="buyPhone" style="width:100%;">
-            </div>
-
-            <button id="confirmBuy">Confirm</button>
-            <button id="closeBuyModal">Close</button>
+    <header class="topbar">
+        <div class="topbar-container">
+            <a href="/" class="brand-logo" aria-label="Trang chủ">
+                <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+                <div class="brand-logo-text single">
+                    <span class="brand-main">PShop</span>
+                </div>
+            </a>
         </div>
-    </div>
+    </header>
+
+    <main class="page">
+        <div class="product-detail-card">
+            <div class="product-image-col">
+                <img src="/image/<%= tutorial.id %>.jpg" alt="tutorial image" class="product-img">
+            </div>
+
+            <div class="product-info-col">
+                <div class="product-id">Mã SP: #<%= tutorial.id %></div>
+                <h1 class="product-title"><%= tutorial.title %></h1>
+                
+                <div class="product-desc">
+                    <strong>Mô tả:</strong> <%= tutorial.description %>
+                </div>
+                
+                <div class="product-price">
+                    <%= tutorial.price ? tutorial.price + 'đ' : 'Liên hệ' %>
+                </div>
+
+                <div class="product-status <%= tutorial.published ? '' : 'unavailable' %>">
+                    Trạng thái: <%= tutorial.published ? 'Đang bán' : 'Ngừng bán' %>
+                </div>
+
+                <div class="action-buttons">
+                    <form action="/cart/items" method="POST" class="cart-form">
+                        <input type="hidden" name="tutorialId" value="<%= tutorial.id %>">
+                        <button type="submit" class="btn btn-outline" <%=tutorial.published ? "" : "disabled" %>>
+                            Thêm vào giỏ
+                        </button>
+                    </form>
+
+                    <button class="btn btn-primary btnBuy" 
+                        data-id="<%= tutorial.id %>" 
+                        data-title="<%= tutorial.title %>"
+                        data-published="<%= tutorial.published %>" 
+                        <%=tutorial.published ? "" : "disabled" %>>
+                        Mua ngay
+                    </button>
+                </div>
+
+                <div class="cart-link-wrapper">
+                    <a href="/cart" class="cart-link">→ Xem giỏ hàng của bạn</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="buyModal">
+            <div class="modal-content">
+                <h3>Xác nhận mua hàng</h3>
+
+                <div class="form-group">
+                    <label>Mã sản phẩm:</label>
+                    <input type="text" id="buyId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Tên sản phẩm:</label>
+                    <input type="text" id="buyTitle" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Số lượng:</label>
+                    <input type="number" id="buyQuantity" value="1" min="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Email liên hệ:</label>
+                    <input type="email" id="buyEmail" placeholder="Nhập email của bạn">
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại:</label>
+                    <input type="text" id="buyPhone" placeholder="Nhập số điện thoại">
+                </div>
+
+                <div class="modal-actions">
+                    <button id="closeBuyModal" class="btn btn-outline">Hủy</button>
+                    <button id="confirmBuy" class="btn btn-primary">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 
 </html>
