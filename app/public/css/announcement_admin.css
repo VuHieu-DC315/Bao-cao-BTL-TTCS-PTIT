@@ -68,6 +68,19 @@ button, input, textarea {
   letter-spacing: -1px;
 }
 
+.brand-logo-text.single {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0;
+}
+
 .page {
   max-width: 800px;
   margin: 40px auto;
