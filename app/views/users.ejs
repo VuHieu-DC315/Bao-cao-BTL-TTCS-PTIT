@@ -7,54 +7,90 @@
 
   <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
   <link rel="stylesheet" href="/css/users.css" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 </head>
 <body>
+  <%
+    const safeUsers = Array.isArray(users) ? users : [];
+    const adminCount = safeUsers.filter(user => (user.role || '').toLowerCase() === 'admin').length;
+    const normalUserCount = safeUsers.length - adminCount;
+  %>
+
   <header class="topbar">
     <div class="topbar-container">
       <a href="/" class="brand-logo" aria-label="Trang chủ">
         <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
         <div class="brand-logo-text">
-          <span class="brand-main">PShop</span>
-          <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
+          <span class="brand-main">PShop Admin</span>
+          <span class="brand-sub">Quản trị hệ thống bán đồ điện tử</span>
         </div>
       </a>
 
       <div class="topbar-actions">
-        <a href="/admin" class="topbar-link">Quay lại trang admin</a>
+        <a href="/admin" class="topbar-link">Trang quản trị</a>
+
+        <div class="account-summary">
+          <span class="account-summary-label">Đăng nhập với</span>
+          <strong class="account-summary-name">Quản trị viên</strong>
+        </div>
+
+        <div class="account-avatar" title="Tài khoản quản trị">
+          <img
+            src="/image/account_avatar.png"
+            alt="Avatar quản trị"
+            onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+          />
+        </div>
       </div>
     </div>
   </header>
 
   <main class="page">
+    <nav class="breadcrumb" aria-label="Điều hướng">
+      <a href="/admin">Admin</a>
+      <span class="breadcrumb-separator">/</span>
+      <span>Quản lý người dùng</span>
+    </nav>
+
     <section class="hero">
       <div class="hero-left">
         <p class="hero-tag">QUẢN LÝ NGƯỜI DÙNG</p>
         <h1>Danh sách tài khoản hệ thống</h1>
         <p class="hero-desc">
-          Theo dõi, tìm kiếm và quản lý quyền truy cập của tài khoản trên website bán đồ điện tử.
+          Theo dõi, tìm kiếm và quản lý quyền truy cập của tài khoản trên website bán đồ điện tử
+          một cách trực quan, an toàn và chuyên nghiệp.
         </p>
       </div>
 
       <div class="hero-stats">
-        <div class="stat-card">
+        <article class="stat-card">
           <span class="stat-label">Tổng tài khoản</span>
-          <strong class="stat-value"><%= users.length %></strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Khu vực</span>
-          <strong class="stat-value">Quản trị người dùng</strong>
-        </div>
+          <strong class="stat-value"><%= safeUsers.length %></strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Quản trị viên</span>
+          <strong class="stat-value"><%= adminCount %></strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Người dùng thường</span>
+          <strong class="stat-value"><%= normalUserCount %></strong>
+        </article>
       </div>
     </section>
 
     <section class="table-card">
       <div class="card-head">
-        <div>
+        <div class="card-head-content">
           <h2>Danh sách tài khoản</h2>
-          <p>Quản lý thông tin đăng nhập và vai trò người dùng trong hệ thống</p>
+          <p>Quản lý thông tin đăng nhập, email và vai trò người dùng trong hệ thống.</p>
         </div>
 
         <div class="card-tools">
@@ -63,13 +99,27 @@
               type="text"
               id="userSearch"
               placeholder="Tìm theo tài khoản, email, vai trò hoặc ID..."
+              aria-label="Tìm kiếm tài khoản"
             />
           </div>
+
+          <select id="roleFilter" class="filter-select" aria-label="Lọc theo vai trò">
+            <option value="all">Tất cả vai trò</option>
+            <option value="admin">Quản trị</option>
+            <option value="user">Người dùng</option>
+          </select>
 
           <button type="button" class="primary-btn add-user-btn" id="openCreateModal">
             + Thêm tài khoản mới
           </button>
         </div>
+      </div>
+
+      <div class="toolbar-meta">
+        <p class="toolbar-result">
+          Đang hiển thị <strong id="visibleCount"><%= safeUsers.length %></strong> /
+          <strong><%= safeUsers.length %></strong> tài khoản
+        </p>
       </div>
 
       <div class="table-wrap">
@@ -84,88 +134,211 @@
               <th>Hành động</th>
             </tr>
           </thead>
-          <tbody id="userTableBody">
-            <% users.forEach(user => { %>
-              <tr
-                data-id="<%= user.id %>"
-                data-tk="<%= (user.tk || '').toLowerCase() %>"
-                data-email="<%= (user.email || '').toLowerCase() %>"
-                data-role="<%= (user.role || '').toLowerCase() %>"
-              >
-                <td>
-                  <span class="id-badge">#<%= user.id %></span>
-                </td>
-                <td class="username-cell"><%= user.tk %></td>
-                <td class="email-cell"><%= user.email %></td>
-                <td>
-                  <span class="password-mask">••••••••</span>
-                </td>
-                <td>
-                  <% if ((user.role || '').toLowerCase() === 'admin') { %>
-                    <span class="role-badge role-admin">Quản trị</span>
-                  <% } else { %>
-                    <span class="role-badge role-user">Người dùng</span>
-                  <% } %>
-                </td>
-                <td>
-                  <div class="action-group">
-                    <a class="btn-action btn-edit" href="/admin/users/<%= user.id %>/edit">Sửa</a>
 
-                    <form action="/admin/users/<%= user.id %>/delete" method="POST" style="display:inline;">
-                      <button
-                        type="submit"
-                        class="btn-action btn-delete"
-                        onclick="return confirm('Bạn có chắc muốn xóa tài khoản này không?')"
+          <tbody id="userTableBody">
+            <% if (safeUsers.length > 0) { %>
+              <% safeUsers.forEach((user) => { %>
+                <tr
+                  data-id="<%= user.id %>"
+                  data-tk="<%= (user.tk || '').toLowerCase() %>"
+                  data-email="<%= (user.email || '').toLowerCase() %>"
+                  data-role="<%= (user.role || '').toLowerCase() %>"
+                >
+                  <td>
+                    <span class="id-badge">#<%= user.id %></span>
+                  </td>
+
+                  <td class="username-cell">
+                    <span class="user-name"><%= user.tk || 'Chưa cập nhật' %></span>
+                  </td>
+
+                  <td class="email-cell"><%= user.email || 'Chưa cập nhật' %></td>
+
+                  <td>
+                    <span class="password-mask">••••••••</span>
+                  </td>
+
+                  <td>
+                    <% if ((user.role || '').toLowerCase() === 'admin') { %>
+                      <span class="role-badge role-admin">Quản trị</span>
+                    <% } else { %>
+                      <span class="role-badge role-user">Người dùng</span>
+                    <% } %>
+                  </td>
+
+                  <td>
+                    <div class="action-group">
+                      <a class="btn-action btn-edit" href="/admin/users/<%= user.id %>/edit">
+                        <span class="action-icon" aria-hidden="true">✏️</span>
+                        <span>Sửa</span>
+                      </a>
+
+                      <form
+                        action="/admin/users/<%= user.id %>/delete"
+                        method="POST"
+                        class="inline-form"
+                        onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này không?')"
                       >
-                        Xóa
-                      </button>
-                    </form>
-                  </div>
+                        <button type="submit" class="btn-action btn-delete">
+                          <span class="action-icon" aria-hidden="true">🗑️</span>
+                          <span>Xóa</span>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="empty-row">
+                  Chưa có tài khoản nào trong hệ thống.
                 </td>
               </tr>
-            <% }) %>
+            <% } %>
           </tbody>
         </table>
 
         <div id="emptySearch" class="empty-state" style="display: none;">
-          Không tìm thấy tài khoản phù hợp.
+          <div class="empty-state-icon">🔎</div>
+          <h3>Không tìm thấy tài khoản phù hợp</h3>
+          <p>Hãy thử lại với từ khóa khác hoặc thay đổi bộ lọc vai trò.</p>
         </div>
       </div>
     </section>
   </main>
 
-  <div id="createUserModal" class="modal-overlay" style="display: none;">
-    <div class="modal-box">
-      <button id="closeCreateModal" class="modal-close" type="button">&times;</button>
+  <div class="contact-float" aria-label="Liên hệ nhanh">
+    <a
+      href="https://m.me/yourpage"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="contact-btn"
+      title="Nhắn Messenger"
+    >
+      <img
+        src="/image/messenge.png"
+        alt="Messenger"
+      />
+    </a>
 
-      <div class="card-head modal-head">
-        <div>
-          <p class="modal-tag">THÊM TÀI KHOẢN</p>
-          <h2>Tạo tài khoản mới</h2>
-          <p>Thêm người dùng hoặc quản trị viên mới vào hệ thống</p>
-        </div>
+    <a
+      href="https://zalo.me/yourzalo"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="contact-btn"
+      title="Nhắn Zalo"
+    >
+      <img
+        src="/image/zalo.webp"
+        alt="Zalo"
+      />
+    </a>
+  </div>
+
+  <footer class="footer-contact">
+    <div class="footer-container">
+      <div class="footer-info">
+        <strong>PShop - Thế giới mua sắm đồ điện tử</strong>
+        <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+        <p>
+          Hotline: <a href="tel:0123456789">0123 456 789</a>
+          <span class="footer-dot">•</span>
+          Email: <a href="mailto:contact@pshop.vn">contact@pshop.vn</a>
+        </p>
       </div>
 
-      <form action="/admin/users" method="POST" class="user-form">
+      <div class="footer-social">
+  <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" title="Facebook" class="social-btn">
+    <img src="/image/facebook.webp" alt="Facebook">
+  </a>
+
+  <a href="https://m.me/yourpage" target="_blank" rel="noopener noreferrer" title="Messenger" class="social-btn">
+    <img src="/image/messenger.png" alt="Messenger">
+  </a>
+
+  <a href="https://zalo.me/yourzalo" target="_blank" rel="noopener noreferrer" title="Zalo" class="social-btn">
+    <img src="/image/zalo.webp" alt="Zalo">
+  </a>
+</div>
+    </div>
+  </footer>
+
+  <div
+    id="createUserModal"
+    class="modal-overlay"
+    style="display: none;"
+    aria-hidden="true"
+  >
+    <div
+      class="modal-box"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="createUserTitle"
+    >
+      <button
+        id="closeCreateModal"
+        class="modal-close"
+        type="button"
+        aria-label="Đóng cửa sổ"
+      >
+        &times;
+      </button>
+
+      <div class="modal-head">
+        <p class="modal-tag">THÊM TÀI KHOẢN</p>
+        <h2 id="createUserTitle">Tạo tài khoản mới</h2>
+        <p>Thêm người dùng hoặc quản trị viên mới vào hệ thống.</p>
+      </div>
+
+      <form action="/admin/users" method="POST" class="user-form" id="createUserForm" novalidate>
         <div class="form-grid">
           <div class="form-group">
             <label for="tk">Tài khoản</label>
-            <input id="tk" type="text" name="tk" placeholder="Nhập tên tài khoản" required />
+            <input
+              id="tk"
+              type="text"
+              name="tk"
+              placeholder="Nhập tên tài khoản"
+              minlength="3"
+              maxlength="50"
+              required
+            />
+            <small class="form-help">Tối thiểu 3 ký tự.</small>
           </div>
 
           <div class="form-group">
             <label for="email">Email</label>
-            <input id="email" type="email" name="email" placeholder="Nhập email" required />
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="Nhập email"
+              required
+            />
+            <small class="form-help">Nhập email đúng định dạng.</small>
           </div>
 
-          <div class="form-group">
+          <div class="form-group form-group-full">
             <label for="mk">Mật khẩu</label>
-            <input id="mk" type="text" name="mk" placeholder="Nhập mật khẩu" required />
+            <div class="password-input-wrap">
+              <input
+                id="mk"
+                type="password"
+                name="mk"
+                placeholder="Nhập mật khẩu"
+                minlength="6"
+                required
+              />
+              <button type="button" class="password-toggle" id="togglePassword">
+                Hiện
+              </button>
+            </div>
+            <small class="form-help">Mật khẩu nên có ít nhất 6 ký tự.</small>
           </div>
 
-          <div class="form-group">
+          <div class="form-group form-group-full">
             <label for="role">Phân quyền</label>
-            <select id="role" name="role">
+            <select id="role" name="role" required>
               <option value="user">Người dùng</option>
               <option value="admin">Quản trị viên</option>
             </select>
@@ -173,70 +346,115 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="primary-btn modal-submit">+ Thêm tài khoản</button>
-          <button type="button" class="secondary-btn" id="cancelCreateModal">Hủy</button>
+          <button type="submit" class="primary-btn modal-submit">
+            + Thêm tài khoản
+          </button>
+          <button type="button" class="secondary-btn" id="cancelCreateModal">
+            Hủy
+          </button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    (function () {
+    (() => {
       const openBtn = document.getElementById("openCreateModal");
       const closeBtn = document.getElementById("closeCreateModal");
       const cancelBtn = document.getElementById("cancelCreateModal");
       const modal = document.getElementById("createUserModal");
+      const firstInput = document.getElementById("tk");
+
       const searchInput = document.getElementById("userSearch");
+      const roleFilter = document.getElementById("roleFilter");
       const tableBody = document.getElementById("userTableBody");
-      const rows = Array.from(tableBody.querySelectorAll("tr"));
+      const visibleCount = document.getElementById("visibleCount");
       const emptyState = document.getElementById("emptySearch");
+
+      const passwordInput = document.getElementById("mk");
+      const togglePasswordBtn = document.getElementById("togglePassword");
+
+      function getRows() {
+        return Array.from(tableBody.querySelectorAll("tr[data-id]"));
+      }
 
       function openModal() {
         modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("modal-open");
+        if (firstInput) firstInput.focus();
       }
 
       function closeModal() {
         modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
         document.body.classList.remove("modal-open");
       }
 
-      openBtn.addEventListener("click", openModal);
-      closeBtn.addEventListener("click", closeModal);
-      cancelBtn.addEventListener("click", closeModal);
+      function applyFilters() {
+        const keyword = (searchInput?.value || "").trim().toLowerCase();
+        const selectedRole = (roleFilter?.value || "all").toLowerCase();
+        const rows = getRows();
 
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeModal();
-      });
-
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && modal.style.display === "flex") {
-          closeModal();
-        }
-      });
-
-      searchInput.addEventListener("input", function () {
-        const keyword = this.value.trim().toLowerCase();
-        let visibleCount = 0;
+        let count = 0;
 
         rows.forEach((row) => {
           const id = (row.dataset.id || "").toLowerCase();
-          const tk = row.dataset.tk || "";
-          const email = row.dataset.email || "";
-          const role = row.dataset.role || "";
+          const tk = (row.dataset.tk || "").toLowerCase();
+          const email = (row.dataset.email || "").toLowerCase();
+          const role = (row.dataset.role || "").toLowerCase();
 
-          const matched =
+          const matchedKeyword =
+            !keyword ||
             id.includes(keyword) ||
             tk.includes(keyword) ||
             email.includes(keyword) ||
             role.includes(keyword);
 
-          row.style.display = matched ? "" : "none";
-          if (matched) visibleCount++;
+          const matchedRole = selectedRole === "all" || role === selectedRole;
+          const isVisible = matchedKeyword && matchedRole;
+
+          row.style.display = isVisible ? "" : "none";
+          if (isVisible) count++;
         });
 
-        emptyState.style.display = visibleCount === 0 ? "block" : "none";
+        if (visibleCount) visibleCount.textContent = count;
+        if (emptyState) emptyState.style.display = count === 0 ? "flex" : "none";
+      }
+
+      if (openBtn) openBtn.addEventListener("click", openModal);
+      if (closeBtn) closeBtn.addEventListener("click", closeModal);
+      if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+      if (modal) {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.style.display === "flex") {
+          closeModal();
+        }
       });
+
+      if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+      }
+
+      if (roleFilter) {
+        roleFilter.addEventListener("change", applyFilters);
+      }
+
+      if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener("click", () => {
+          const isPassword = passwordInput.type === "password";
+          passwordInput.type = isPassword ? "text" : "password";
+          togglePasswordBtn.textContent = isPassword ? "Ẩn" : "Hiện";
+        });
+      }
+
+      applyFilters();
     })();
   </script>
 </body>
