@@ -82,6 +82,29 @@
                     <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
                 </div>
             </a>
+
+            <div class="detail-topbar-actions">
+                <a href="/shop" class="detail-topbar-link">Cửa hàng</a>
+                <a href="/cart" class="detail-topbar-link">Giỏ hàng</a>
+
+                <div class="wishlist-popover-wrap" id="wishlistPopoverWrap">
+                    <button id="wishlistToggleBtn" type="button" class="detail-topbar-link wishlist-header-link">
+                        Yêu thích <span class="wishlist-count-badge" data-wishlist-count>0</span>
+                    </button>
+
+                    <div id="wishlistPopup" class="wishlist-popup" aria-hidden="true">
+                        <div class="wishlist-popup-head">
+                            <strong>Sản phẩm yêu thích</strong>
+                        </div>
+
+                        <div
+                            class="wishlist-popup-list"
+                            data-wishlist-section
+                            data-wishlist-variant="compact"
+                            data-empty-text="Bạn chưa thêm sản phẩm nào vào mục yêu thích."></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -94,11 +117,11 @@
             <div class="product-info-col">
                 <div class="product-id">Mã SP: #<%= tutorial.id %></div>
                 <h1 class="product-title"><%= tutorial.title %></h1>
-                
+
                 <div class="product-desc">
                     <strong>Mô tả:</strong> <%= tutorial.description %>
                 </div>
-                
+
                 <div class="product-price">
                     <%= tutorial.price ? tutorial.price + 'đ' : 'Liên hệ' %>
                 </div>
@@ -122,10 +145,26 @@
                         <%=tutorial.published ? "" : "disabled" %>>
                         Mua ngay
                     </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline wishlist-detail-btn"
+                        data-wishlist-button
+                        data-product-id="<%= tutorial.id %>"
+                        data-product-title="<%= tutorial.title %>"
+                        data-product-description="<%= tutorial.description %>"
+                        data-product-price="<%= tutorial.price || 0 %>"
+                        data-product-image="/image/<%= tutorial.id %>.jpg"
+                        data-product-published="<%= tutorial.published ? 'true' : 'false' %>"
+                        data-product-link="/products/<%= tutorial.id %>">
+                        <span data-wishlist-icon>♡</span>
+                        <span data-wishlist-text>Yêu thích</span>
+                    </button>
                 </div>
 
                 <div class="cart-link-wrapper">
                     <a href="/cart" class="cart-link">→ Xem giỏ hàng của bạn</a>
+                    <div class="wishlist-detail-note">Bạn có thể lưu sản phẩm này vào mục yêu thích để xem lại nhanh hơn.</div>
                 </div>
             </div>
         </div>
@@ -166,6 +205,222 @@
             </div>
         </div>
     </main>
+
+    <script>
+        (function () {
+            const STORAGE_KEY = 'pshop_wishlist_v1';
+
+            function readItems() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    console.warn('Wishlist read error:', error);
+                    return [];
+                }
+            }
+
+            function saveItems(items) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            }
+
+            function normalizeItem(item) {
+                return {
+                    id: String(item.id || '').trim(),
+                    title: String(item.title || '').trim(),
+                    description: String(item.description || '').trim(),
+                    price: Number(item.price || 0),
+                    image: item.image || '/image/1.jpg',
+                    published: item.published === true || item.published === 'true' || item.published === '1' || item.published === 1,
+                    link: item.link || (item.id ? '/products/' + encodeURIComponent(item.id) : '/shop')
+                };
+            }
+
+            function getItems() {
+                return readItems().map(normalizeItem).filter(item => item.id);
+            }
+
+            function hasItem(productId) {
+                return getItems().some(item => item.id === String(productId));
+            }
+
+            function addItem(item) {
+                const nextItem = normalizeItem(item);
+                if (!nextItem.id) return getItems();
+
+                const items = getItems();
+                if (!items.some(entry => entry.id === nextItem.id)) {
+                    items.unshift(nextItem);
+                    saveItems(items);
+                }
+                return items;
+            }
+
+            function removeItem(productId) {
+                const nextItems = getItems().filter(item => item.id !== String(productId));
+                saveItems(nextItems);
+                return nextItems;
+            }
+
+            function toggleItem(item) {
+                const normalized = normalizeItem(item);
+                if (!normalized.id) return getItems();
+                return hasItem(normalized.id) ? removeItem(normalized.id) : addItem(normalized);
+            }
+
+            function escapeHtml(text) {
+                return String(text || '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function formatPrice(price) {
+                return Number(price || 0).toLocaleString('vi-VN') + 'đ';
+            }
+
+            function getButtonPayload(button) {
+                const dataset = button.dataset || {};
+                return {
+                    id: dataset.productId,
+                    title: dataset.productTitle,
+                    description: dataset.productDescription,
+                    price: dataset.productPrice,
+                    image: dataset.productImage,
+                    published: dataset.productPublished,
+                    link: dataset.productLink
+                };
+            }
+
+            function syncButtons() {
+                document.querySelectorAll('[data-wishlist-button]').forEach((button) => {
+                    const productId = button.dataset.productId;
+                    const active = hasItem(productId);
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                    button.setAttribute('title', active ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích');
+
+                    const icon = button.querySelector('[data-wishlist-icon]');
+                    if (icon) icon.textContent = active ? '♥' : '♡';
+
+                    const textNode = button.querySelector('[data-wishlist-text]');
+                    if (textNode) textNode.textContent = active ? 'Đã thích' : 'Yêu thích';
+                });
+            }
+
+            function syncCounters() {
+                const total = getItems().length;
+                document.querySelectorAll('[data-wishlist-count]').forEach((node) => {
+                    node.textContent = String(total);
+                });
+            }
+
+            function renderCompactItems(items) {
+                return items.map((item) => `
+                    <article class="wishlist-mini-card">
+                        <a href="${escapeHtml(item.link)}" class="wishlist-mini-thumb">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
+                        </a>
+
+                        <div class="wishlist-mini-body">
+                            <a href="${escapeHtml(item.link)}" class="wishlist-mini-title">${escapeHtml(item.title)}</a>
+                            <div class="wishlist-mini-price">${formatPrice(item.price)}</div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="wishlist-mini-remove"
+                            data-wishlist-button
+                            data-product-id="${escapeHtml(item.id)}"
+                            data-product-title="${escapeHtml(item.title)}"
+                            data-product-description="${escapeHtml(item.description)}"
+                            data-product-price="${escapeHtml(item.price)}"
+                            data-product-image="${escapeHtml(item.image)}"
+                            data-product-published="${escapeHtml(item.published ? 'true' : 'false')}"
+                            data-product-link="${escapeHtml(item.link)}"
+                            title="Bỏ khỏi yêu thích">
+                            ×
+                        </button>
+                    </article>
+                `).join('');
+            }
+
+            function renderSections() {
+                const items = getItems();
+
+                document.querySelectorAll('[data-wishlist-section]').forEach((section) => {
+                    const emptyText = section.dataset.emptyText || 'Bạn chưa thêm sản phẩm nào vào mục yêu thích.';
+                    const variant = section.dataset.wishlistVariant || 'default';
+
+                    if (!items.length) {
+                        section.innerHTML = '<div class="wishlist-empty compact">' + escapeHtml(emptyText) + '</div>';
+                        return;
+                    }
+
+                    if (variant === 'compact') {
+                        section.innerHTML = renderCompactItems(items);
+                        return;
+                    }
+
+                    section.innerHTML = '';
+                });
+            }
+
+            function refreshWishlist() {
+                syncButtons();
+                syncCounters();
+                renderSections();
+            }
+
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('[data-wishlist-button]');
+                if (!button) return;
+
+                event.preventDefault();
+                toggleItem(getButtonPayload(button));
+                refreshWishlist();
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const wrap = document.getElementById('wishlistPopoverWrap');
+                const toggleBtn = document.getElementById('wishlistToggleBtn');
+                const popup = document.getElementById('wishlistPopup');
+
+                if (wrap && toggleBtn && popup) {
+                    toggleBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const isOpen = popup.classList.contains('show');
+                        popup.classList.toggle('show', !isOpen);
+                        popup.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                    });
+
+                    document.addEventListener('click', function (e) {
+                        if (!wrap.contains(e.target)) {
+                            popup.classList.remove('show');
+                            popup.setAttribute('aria-hidden', 'true');
+                        }
+                    });
+
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            popup.classList.remove('show');
+                            popup.setAttribute('aria-hidden', 'true');
+                        }
+                    });
+                }
+
+                refreshWishlist();
+            });
+
+            if (document.readyState !== 'loading') {
+                refreshWishlist();
+            }
+        })();
+    </script>
+
 </body>
 
 </html>
