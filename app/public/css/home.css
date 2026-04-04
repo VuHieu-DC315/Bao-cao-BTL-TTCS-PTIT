@@ -442,6 +442,42 @@ body {
   border: none;
 }
 
+/* Nút mua sản phẩm */
+.buy-product-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 30px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    border: none;
+    margin-top: 18px;
+    margin-bottom: 2px;
+    box-shadow: var(--shadow-md);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.buy-product-btn:hover:not(.disabled) {
+    background-color: #b71c1c;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 15px rgba(215,0,24,0.12);
+    color: #fff;
+}
+
+.buy-product-btn.disabled,
+.buy-product-btn[disabled],
+.product-card .buy-product-btn.disabled {
+    background-color: #ccc !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    pointer-events: none;
+    border: none;
+}
+
 .product-section {
   margin-bottom: 54px;
 }
