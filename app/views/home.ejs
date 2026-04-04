@@ -12,50 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <style>
-        .buy-product-btn {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 10px 22px;
-            background-color: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .buy-product-btn:hover {
-            background-color: #b71c1c;
-            transform: translateY(-2px);
-        }
-
-        .buy-product-btn.disabled {
-            background-color: #cfcfcf;
-            color: #666;
-            cursor: not-allowed;
-            transform: none;
-            pointer-events: none;
-        }
-
-        .product-desc {
-            margin: 10px 0 0;
-            font-size: 14px;
-            color: #666;
-            min-height: 40px;
-            line-height: 1.4;
-        }
-
-        .product-loading,
-        .product-empty,
-        .product-error {
-            grid-column: 1 / -1;
-            font-size: 18px;
-            color: #444;
-        }
-    </style>
+    <!-- Đã gộp style vào file home.css -->
 </head>
 <body>
     <div class="top-strip" style="background: #f1f1f1; font-size: 13px; padding: 5px 0;">
@@ -79,14 +36,19 @@
                 </div>
             </a>
 
-            <form class="search-box" action="/" method="GET">
-                <input type="text" name="keyword" placeholder="Bạn muốn mua gì hôm nay?" />
+            <form class="search-box" action="/shop" method="GET">
+                <input type="text" name="q" placeholder="Bạn muốn mua gì hôm nay?" />
                 <button type="submit">Tìm</button>
             </form>
 
             <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
                 <a href="/cart" style="text-decoration: none; color: white; font-weight: 600;">Giỏ hàng</a>
-                <a href="/login" class="login-btn">Đăng nhập</a>
+
+                <% if (user) { %>
+                    <a href="/logout" class="login-btn">Đăng xuất</a>
+                <% } else { %>
+                    <a href="/login" class="login-btn">Đăng nhập</a>
+                <% } %>
             </div>
         </div>
     </header>
@@ -99,10 +61,11 @@
                     <h1>Mua sắm thiết bị điện tử dễ dàng tại PShop</h1>
                     <p>Khám phá điện thoại, laptop và nhiều thiết bị công nghệ mới nhất.</p>
                     <div class="hero-actions">
-                        <a href="#products" class="primary-btn">Mua ngay</a>
-                        <a href="#contact" class="secondary-btn">Liên hệ</a>
+                        <a href="/shop" class="primary-btn">Vào cửa hàng</a>
+                        <a href="#products" class="secondary-btn">Xem sản phẩm</a>
                     </div>
                 </div>
+
                 <div class="hero-card">
                     <div class="hero-slider" id="heroSlider">
                         <div class="hero-slide active">
@@ -142,15 +105,107 @@
             </div>
         </section>
 
+        <section class="announcement-section">
+            <div class="container">
+                <div class="announcement-panel">
+                    <div class="announcement-head">
+                        <div>
+                            <h2>Thông báo mới</h2>
+                            <p>Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
+                        </div>
+
+                        <% if (hasMoreAnnouncements) { %>
+                            <a href="/announcements" class="announcement-link">Xem thêm</a>
+                        <% } %>
+                    </div>
+
+                    <% if (announcements && announcements.length > 0) { %>
+                        <div class="announcement-grid">
+                            <% announcements.forEach(function(item) { %>
+                                <article class="announcement-card">
+                                    <span class="announcement-badge">Thông báo</span>
+                                    <h3 class="announcement-title"><%= item.title %></h3>
+                                    <p class="announcement-content preview"><%= item.content %></p>
+
+                                    <div class="announcement-meta">
+                                        <% if (item.isPermanent) { %>
+                                            <div>Thông báo vĩnh viễn</div>
+                                        <% } else if (item.startDateVN || item.endDateVN) { %>
+                                            <div>
+                                                Từ: <%= item.startDateVN || "Không giới hạn" %><br>
+                                                Đến: <%= item.endDateVN || "Không giới hạn" %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+
+                                    <% if (item.content && item.content.length > 120) { %>
+                                        <div class="announcement-actions">
+                                            <button
+                                                type="button"
+                                                class="announcement-readmore"
+                                                data-title="<%= item.title %>"
+                                                data-content="<%= item.content %>"
+                                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
+                                                Đọc thêm
+                                            </button>
+                                        </div>
+                                    <% } %>
+                                </article>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="announcement-empty">Hiện chưa có thông báo nào.</div>
+                    <% } %>
+                </div>
+            </div>
+        </section>
+
         <div class="container products-showcase">
             <section class="product-section" id="products">
                 <div class="section-header">
-                    <h2>Danh sách sản phẩm</h2>
-                    
+                    <h2>Sản phẩm nổi bật</h2>
                 </div>
 
-                <div id="homepageProducts" class="product-grid three-columns">
-                    <p class="product-loading">Đang tải sản phẩm...</p>
+                <div class="product-grid three-columns">
+                    <% if (tutorials && tutorials.length > 0) { %>
+                        <% tutorials.forEach(function(item) { %>
+                            <article class="product-card">
+                                <div class="product-image">
+                                    <img src="/image/<%= item.id %>.jpg"
+                                         alt="<%= item.title %>"
+                                         onerror="this.src='/image/1.jpg'" />
+                                </div>
+
+                                <h4><%= item.title %></h4>
+
+                                <p class="product-desc">
+                                    <%= item.description %>
+                                </p>
+
+                                <span class="price">
+                                    <%= Number(item.price || 0).toLocaleString("vi-VN") %>đ
+                                </span>
+
+                                <% if (item.published) { %>
+    <% if (user) { %>
+        <a href="/products/<%= item.id %>" class="buy-product-btn">
+            Mua
+        </a>
+    <% } else { %>
+        <a href="/login?error=<%= encodeURIComponent('Bạn cần đăng nhập để mua hàng') %>" class="buy-product-btn">
+            Mua
+        </a>
+    <% } %>
+<% } else { %>
+    <span class="buy-product-btn disabled">
+        Hết bán
+    </span>
+<% } %>
+                            </article>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="product-empty">Chưa có sản phẩm nào.</p>
+                    <% } %>
                 </div>
             </section>
         </div>
@@ -173,144 +228,110 @@
         </div>
     </footer>
 
+    <div class="announcement-modal" id="announcementModal" aria-hidden="true">
+        <div class="announcement-modal-card" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
+            <button type="button" class="modal-close" id="closeAnnouncementModal" aria-label="Đóng">×</button>
+            <div class="announcement-modal-meta" id="announcementModalMeta"></div>
+            <h3 class="announcement-modal-title" id="announcementModalTitle"></h3>
+            <div class="announcement-modal-content" id="announcementModalContent"></div>
+        </div>
+    </div>
+
     <script>
-    const heroSlides = document.querySelectorAll('#heroSlider .hero-slide');
-    const heroDots = document.querySelectorAll('#heroSlider .hero-dot');
-    const heroPrev = document.getElementById('heroPrev');
-    const heroNext = document.getElementById('heroNext');
-    let currentHeroSlide = 0;
-    let heroAutoPlay;
+        const heroSlides = document.querySelectorAll('#heroSlider .hero-slide');
+        const heroDots = document.querySelectorAll('#heroSlider .hero-dot');
+        const heroPrev = document.getElementById('heroPrev');
+        const heroNext = document.getElementById('heroNext');
+        let currentHeroSlide = 0;
+        let heroAutoPlay;
 
-    function showHeroSlide(index) {
-        currentHeroSlide = (index + heroSlides.length) % heroSlides.length;
+        function showHeroSlide(index) {
+            currentHeroSlide = (index + heroSlides.length) % heroSlides.length;
 
-        heroSlides.forEach((slide, i) => {
-            slide.classList.toggle('active', i === currentHeroSlide);
-        });
-
-        heroDots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === currentHeroSlide);
-        });
-    }
-
-    function nextHeroSlide() {
-        showHeroSlide(currentHeroSlide + 1);
-    }
-
-    function prevHeroSlide() {
-        showHeroSlide(currentHeroSlide - 1);
-    }
-
-    function startHeroAutoPlay() {
-        heroAutoPlay = setInterval(nextHeroSlide, 3500);
-    }
-
-    function resetHeroAutoPlay() {
-        clearInterval(heroAutoPlay);
-        startHeroAutoPlay();
-    }
-
-    heroNext.addEventListener('click', () => {
-        nextHeroSlide();
-        resetHeroAutoPlay();
-    });
-
-    heroPrev.addEventListener('click', () => {
-        prevHeroSlide();
-        resetHeroAutoPlay();
-    });
-
-    heroDots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            showHeroSlide(index);
-            resetHeroAutoPlay();
-        });
-    });
-
-    showHeroSlide(0);
-    startHeroAutoPlay();
-
-    function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text || "";
-        return div.innerHTML;
-    }
-
-    function formatPrice(rawPrice) {
-        const numeric = Number(String(rawPrice || "").replace(/[^\d]/g, ""));
-        if (!Number.isNaN(numeric) && numeric > 0) {
-            return numeric.toLocaleString("vi-VN") + "đ";
-        }
-        return rawPrice && String(rawPrice).trim() ? rawPrice : "Liên hệ";
-    }
-
-    async function loadHomepageProducts() {
-        const container = document.getElementById("homepageProducts");
-        if (!container) return;
-
-        try {
-            const response = await fetch("/homepage");
-            if (!response.ok) {
-                throw new Error("Không lấy được dữ liệu từ /homepage");
-            }
-
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-
-            const rows = Array.from(doc.querySelectorAll("table tbody tr")).filter((row) => {
-                return row.querySelectorAll("td").length >= 7;
+            heroSlides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === currentHeroSlide);
             });
 
-            if (!rows.length) {
-                container.innerHTML = '<p class="product-empty">Chưa có sản phẩm nào trong database.</p>';
-                return;
-            }
-
-            const cards = rows.map((row) => {
-                const cols = row.querySelectorAll("td");
-
-                const imageSrc =
-                    cols[0].querySelector("img")?.getAttribute("src") || "/image/1.jpg";
-
-                const actionElement = cols[6].querySelector("button, a");
-                const id =
-                    actionElement?.getAttribute("data-id") ||
-                    cols[1].textContent.trim().replace(/^#/, "");
-
-                const title = cols[2].textContent.trim();
-                const description = cols[3].textContent.trim();
-                const rawPrice = cols[4].textContent.trim();
-
-                const isDisabled = actionElement
-                    ? actionElement.hasAttribute("disabled") || actionElement.disabled
-                    : false;
-
-                const buyHtml = isDisabled
-                    ? '<span class="buy-product-btn disabled">Hết bán</span>'
-                    : `<a href="/homepage/${encodeURIComponent(id)}" class="buy-product-btn">Mua</a>`;
-
-                return `
-                    <article class="product-card">
-                        <div class="product-image">
-                            <img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(title)}" onerror="this.src='/image/1.jpg'" />
-                        </div>
-                        <h4>${escapeHtml(title)}</h4>
-                        <p class="product-desc">${escapeHtml(description)}</p>
-                        <span class="price">${escapeHtml(formatPrice(rawPrice))}</span>
-                        ${buyHtml}
-                    </article>
-                `;
-            }).join("");
-
-            container.innerHTML = cards;
-        } catch (error) {
-            console.error("Lỗi tải sản phẩm:", error);
-            container.innerHTML = '<p class="product-error">Không tải được sản phẩm từ homepage.</p>';
+            heroDots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentHeroSlide);
+            });
         }
-    }
 
-    loadHomepageProducts();
-</script>
+        function nextHeroSlide() {
+            showHeroSlide(currentHeroSlide + 1);
+        }
+
+        function prevHeroSlide() {
+            showHeroSlide(currentHeroSlide - 1);
+        }
+
+        function startHeroAutoPlay() {
+            heroAutoPlay = setInterval(nextHeroSlide, 3500);
+        }
+
+        function resetHeroAutoPlay() {
+            clearInterval(heroAutoPlay);
+            startHeroAutoPlay();
+        }
+
+        function openAnnouncementModal(title, content, meta) {
+            document.getElementById("announcementModalTitle").textContent = title || "Thông báo";
+            document.getElementById("announcementModalContent").textContent = content || "";
+            document.getElementById("announcementModalMeta").textContent = meta || "";
+            document.getElementById("announcementModal").classList.add("show");
+            document.body.classList.add("modal-open");
+            document.getElementById("announcementModal").setAttribute("aria-hidden", "false");
+        }
+
+        function closeAnnouncementModal() {
+            document.getElementById("announcementModal").classList.remove("show");
+            document.body.classList.remove("modal-open");
+            document.getElementById("announcementModal").setAttribute("aria-hidden", "true");
+        }
+
+        heroNext.addEventListener('click', () => {
+            nextHeroSlide();
+            resetHeroAutoPlay();
+        });
+
+        heroPrev.addEventListener('click', () => {
+            prevHeroSlide();
+            resetHeroAutoPlay();
+        });
+
+        heroDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                showHeroSlide(index);
+                resetHeroAutoPlay();
+            });
+        });
+
+        document.querySelectorAll(".announcement-readmore").forEach((button) => {
+            button.addEventListener("click", () => {
+                openAnnouncementModal(
+                    button.getAttribute("data-title"),
+                    button.getAttribute("data-content"),
+                    button.getAttribute("data-meta")
+                );
+            });
+        });
+
+        document.getElementById("closeAnnouncementModal").addEventListener("click", closeAnnouncementModal);
+
+        document.getElementById("announcementModal").addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeAnnouncementModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeAnnouncementModal();
+            }
+        });
+
+        showHeroSlide(0);
+        startHeroAutoPlay();
+    </script>
 </body>
 </html>

@@ -3,17 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PShop - Homepage</title>
+
     <link rel="stylesheet" href="/css/homepage.css">
+
+    <!-- Đã gộp style vào file homepage.css -->
 </head>
 
-<body>
-    
+<body data-logged-in="<%= !!user %>">
+
+    <!-- NAVBAR -->
     <div class="main-navbar">
         <div class="main-navbar-inner">
-            <a href="/homepage" class="shop-brand">
+            <a href="/shop" class="shop-brand">
                 <img src="/image/Shop_logo.jpg" alt="PShop Logo" class="shop-brand-logo">
                 <div class="shop-brand-text">
                     <span class="shop-brand-name">PShop</span>
@@ -21,8 +24,12 @@
                 </div>
             </a>
 
-            <form class="shop-search" onsubmit="return false;">
-                <input type="text" placeholder="Bạn muốn mua gì hôm nay?">
+            <form class="shop-search" action="/shop" method="GET">
+                <input
+                    type="text"
+                    name="q"
+                    value="<%= typeof q !== 'undefined' ? q : '' %>"
+                    placeholder="Bạn muốn mua gì hôm nay?">
                 <button type="submit">Tìm</button>
             </form>
 
@@ -37,32 +44,32 @@
             </div>
         </div>
     </div>
-</header>
 
     <main class="page-shell">
         <div class="content-stack">
 
-            <% if (announcements && announcements.length > 0) { %>
-                <section class="panel">
-                    <div class="panel-inner">
-                        <div class="section-head">
-                            <div class="section-title-wrap">
-                                <span class="section-kicker">Announcements</span>
-                                <h2 class="section-title">Thông báo mới</h2>
-                                <p class="section-subtitle">Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
-                            </div>
-
-                            <% if (hasMoreAnnouncements) { %>
-                                <a href="/announcements" class="section-link">Xem thêm</a>
-                            <% } %>
+            <!-- ANNOUNCEMENTS -->
+            <section class="panel">
+                <div class="panel-inner">
+                    <div class="section-head">
+                        <div class="section-title-wrap">
+                            <span class="section-kicker">Announcements</span>
+                            <h2 class="section-title">Thông báo mới</h2>
+                            <p class="section-subtitle">Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
                         </div>
 
+                        <% if (hasMoreAnnouncements) { %>
+                            <a href="/announcements" class="section-link">Xem thêm</a>
+                        <% } %>
+                    </div>
+
+                    <% if (announcements && announcements.length > 0) { %>
                         <div class="announcement-grid">
                             <% announcements.forEach(function(item) { %>
                                 <article class="announcement-card">
                                     <span class="announcement-badge">Thông báo</span>
                                     <h3 class="announcement-title"><%= item.title %></h3>
-                                    <p class="announcement-content"><%= item.content %></p>
+                                    <p class="announcement-content preview"><%= item.content %></p>
 
                                     <div class="announcement-meta">
                                         <% if (item.isPermanent) { %>
@@ -74,22 +81,32 @@
                                             </div>
                                         <% } %>
                                     </div>
+
+                                    <% if (item.content && item.content.length > 120) { %>
+                                        <div class="announcement-actions">
+                                            <button
+                                                type="button"
+                                                class="announcement-readmore"
+                                                data-title="<%= item.title %>"
+                                                data-content="<%= item.content %>"
+                                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
+                                                Đọc thêm
+                                            </button>
+                                        </div>
+                                    <% } %>
                                 </article>
                             <% }) %>
                         </div>
-                    </div>
-                </section>
-            <% } %>
+                    <% } else { %>
+                        <div class="empty-state">Hiện chưa có thông báo nào.</div>
+                    <% } %>
+                </div>
+            </section>
 
+            <!-- PRODUCTS -->
             <section class="panel product-panel">
                 <div class="panel-inner">
-                    <div class="section-head">
-                        <div class="section-title-wrap">
-                    
-                            <h2 class="section-title">Danh sách sản phẩm</h2>
-                            
-                        </div>
-                    </div>
+                    <h2 class="section-title">Danh sách sản phẩm</h2>
 
                     <% if (tutorials && tutorials.length > 0) { %>
                         <div class="product-table-wrap">
@@ -110,7 +127,7 @@
                                         <tr>
                                             <td>
                                                 <div class="product-thumb">
-                                                    <img src="/image/<%= item.id %>.jpg" alt="tutorial image">
+                                                    <img src="/image/<%= item.id %>.jpg" alt="<%= item.title %>">
                                                 </div>
                                             </td>
                                             <td>
@@ -146,7 +163,7 @@
                             </table>
                         </div>
                     <% } else { %>
-                        <div class="empty-state">Hiện chưa có sản phẩm nào để hiển thị.</div>
+                        <div class="empty-state">Không tìm thấy sản phẩm phù hợp.</div>
                     <% } %>
                 </div>
             </section>
@@ -154,15 +171,73 @@
         </div>
     </main>
 
+    <div class="announcement-modal" id="announcementModal" aria-hidden="true">
+        <div class="announcement-modal-card" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
+            <button type="button" class="modal-close" id="closeAnnouncementModal" aria-label="Đóng">×</button>
+            <div class="announcement-modal-meta" id="announcementModalMeta"></div>
+            <h3 class="announcement-modal-title" id="announcementModalTitle"></h3>
+            <div class="announcement-modal-content" id="announcementModalContent"></div>
+        </div>
+    </div>
+
+    <!-- JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
     <script>
+        const isLoggedIn = document.body.dataset.loggedIn === "true";
+
+        function openAnnouncementModal(title, content, meta) {
+            $("#announcementModalTitle").text(title || "Thông báo");
+            $("#announcementModalContent").text(content || "");
+            $("#announcementModalMeta").text(meta || "");
+            $("#announcementModal").addClass("show").attr("aria-hidden", "false");
+            $("body").addClass("modal-open");
+        }
+
+        function closeAnnouncementModal() {
+            $("#announcementModal").removeClass("show").attr("aria-hidden", "true");
+            $("body").removeClass("modal-open");
+        }
+
         $(document).ready(function () {
-            $(".btnBuy").click(function () {
+            $(".btnBuy").on("click", function () {
                 const id = $(this).attr("data-id");
-                window.location.href = `${window.location.origin}/homepage/${id}`;
+
+                if (!isLoggedIn) {
+                    window.location.href =
+                        "/login?error=" + encodeURIComponent("Bạn cần đăng nhập để mua hàng");
+                    return;
+                }
+
+                window.location.href = "/products/" + encodeURIComponent(id);
+            });
+
+            $(".announcement-readmore").on("click", function () {
+                openAnnouncementModal(
+                    $(this).attr("data-title"),
+                    $(this).attr("data-content"),
+                    $(this).attr("data-meta")
+                );
+            });
+
+            $("#closeAnnouncementModal").on("click", function () {
+                closeAnnouncementModal();
+            });
+
+            $("#announcementModal").on("click", function (e) {
+                if (e.target === this) {
+                    closeAnnouncementModal();
+                }
+            });
+
+            $(document).on("keydown", function (e) {
+                if (e.key === "Escape") {
+                    closeAnnouncementModal();
+                }
             });
         });
     </script>
+
 </body>
 
 </html>
