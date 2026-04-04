@@ -104,61 +104,61 @@
                 </div>
             </div>
         </section>
-
+        <%
+    const homeAnnouncementLimit = 3;
+    const homeAnnouncements = (announcements || []).slice(0, homeAnnouncementLimit);
+    const showAnnouncementMore = (announcements || []).length > homeAnnouncementLimit;
+%>
         <section class="announcement-section">
-            <div class="container">
-                <div class="announcement-panel">
-                    <div class="announcement-head">
-                        <div>
-                            <h2>Thông báo mới</h2>
-                            <p>Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
-                        </div>
-
-                        <% if (hasMoreAnnouncements) { %>
-                            <a href="/announcements" class="announcement-link">Xem thêm</a>
-                        <% } %>
-                    </div>
-
-                    <% if (announcements && announcements.length > 0) { %>
-                        <div class="announcement-grid">
-                            <% announcements.forEach(function(item) { %>
-                                <article class="announcement-card">
-                                    <span class="announcement-badge">Thông báo</span>
-                                    <h3 class="announcement-title"><%= item.title %></h3>
-                                    <p class="announcement-content preview"><%= item.content %></p>
-
-                                    <div class="announcement-meta">
-                                        <% if (item.isPermanent) { %>
-                                            <div>Thông báo vĩnh viễn</div>
-                                        <% } else if (item.startDateVN || item.endDateVN) { %>
-                                            <div>
-                                                Từ: <%= item.startDateVN || "Không giới hạn" %><br>
-                                                Đến: <%= item.endDateVN || "Không giới hạn" %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-
-                                    <% if (item.content && item.content.length > 120) { %>
-                                        <div class="announcement-actions">
-                                            <button
-                                                type="button"
-                                                class="announcement-readmore"
-                                                data-title="<%= item.title %>"
-                                                data-content="<%= item.content %>"
-                                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
-                                                Đọc thêm
-                                            </button>
-                                        </div>
-                                    <% } %>
-                                </article>
-                            <% }) %>
-                        </div>
-                    <% } else { %>
-                        <div class="announcement-empty">Hiện chưa có thông báo nào.</div>
-                    <% } %>
+    <div class="container">
+        <div class="announcement-panel">
+            <div class="announcement-head">
+                <div>
+                    <h2>Thông báo mới</h2>
+                    <p>Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
                 </div>
+
+                <% if (showAnnouncementMore) { %>
+                    <a href="/announcements" class="announcement-link">Xem thêm</a>
+                <% } %>
             </div>
-        </section>
+
+            <% if (homeAnnouncements.length > 0) { %>
+                <div class="announcement-grid">
+                    <% homeAnnouncements.forEach(function(item) { %>
+                        <article class="announcement-card">
+                            <span class="announcement-badge">Thông báo</span>
+
+                            <button
+                                type="button"
+                                class="announcement-title-button announcement-open"
+                                data-title="<%= item.title %>"
+                                data-content="<%= item.content %>"
+                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
+                                <span class="announcement-title"><%= item.title %></span>
+                            </button>
+
+                            <p class="announcement-content preview"><%= item.content %></p>
+
+                            <div class="announcement-meta">
+                                <% if (item.isPermanent) { %>
+                                    <div>Thông báo vĩnh viễn</div>
+                                <% } else if (item.startDateVN || item.endDateVN) { %>
+                                    <div>
+                                        Từ: <%= item.startDateVN || "Không giới hạn" %><br>
+                                        Đến: <%= item.endDateVN || "Không giới hạn" %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="announcement-empty">Hiện chưa có thông báo nào.</div>
+            <% } %>
+        </div>
+    </div>
+</section>
 
         <div class="container products-showcase">
             <section class="product-section" id="products">
@@ -211,22 +211,59 @@
         </div>
     </main>
 
-    <footer class="footer" id="contact">
-        <div class="container footer-inner">
-            <div class="footer-col">
-                <h3>PShop</h3>
-                <p>Thế giới mua sắm đồ điện tử uy tín.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Liên hệ</h4>
-                <p>Email: pshop@gmail.com</p>
-                <p>Hotline: 1800 2005</p>
-            </div>
+    <div class="contact-float" aria-label="Liên hệ nhanh">
+    <a
+        href="https://m.me/yourpage"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="contact-btn"
+        title="Nhắn Messenger"
+    >
+        <img src="/image/messenger.png" alt="Messenger" />
+    </a>
+
+    <a
+        href="https://zalo.me/yourzalo"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="contact-btn"
+        title="Nhắn Zalo"
+    >
+        <img src="/image/zalo.webp" alt="Zalo" />
+    </a>
+</div>
+
+<footer class="footer-contact" id="contact">
+    <div class="container footer-container">
+        <div class="footer-info">
+            <strong>PShop - Thế giới mua sắm đồ điện tử</strong>
+            <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+            <p>
+                Hotline: <a href="tel:0123456789">0123 456 789</a>
+                <span class="footer-dot">•</span>
+                Email: <a href="mailto:contact@pshop.vn">contact@pshop.vn</a>
+            </p>
         </div>
-        <div class="footer-bottom">
-            © 2026 PShop. All rights reserved.
+
+        <div class="footer-social">
+            <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" title="Facebook" class="social-btn">
+                <img src="/image/facebook.webp" alt="Facebook" />
+            </a>
+
+            <a href="https://m.me/yourpage" target="_blank" rel="noopener noreferrer" title="Messenger" class="social-btn">
+                <img src="/image/messenger.png" alt="Messenger" />
+            </a>
+
+            <a href="https://zalo.me/yourzalo" target="_blank" rel="noopener noreferrer" title="Zalo" class="social-btn">
+                <img src="/image/zalo.webp" alt="Zalo" />
+            </a>
         </div>
-    </footer>
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 PShop. All rights reserved.
+    </div>
+</footer>
 
     <div class="announcement-modal" id="announcementModal" aria-hidden="true">
         <div class="announcement-modal-card" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
@@ -306,7 +343,7 @@
             });
         });
 
-        document.querySelectorAll(".announcement-readmore").forEach((button) => {
+        document.querySelectorAll(".announcement-open").forEach((button) => {
             button.addEventListener("click", () => {
                 openAnnouncementModal(
                     button.getAttribute("data-title"),

@@ -35,7 +35,7 @@
 
             <div class="shop-actions">
                 <a href="/cart" class="nav-cart-link">Giỏ hàng</a>
-
+                
                 <% if (user) { %>
                     <a href="/logout" class="nav-auth-btn">Đăng xuất</a>
                 <% } else { %>
@@ -45,11 +45,39 @@
         </div>
     </div>
 
-    <main class="page-shell">
+    <%
+        const homeAnnouncementLimit = 3;
+        const homeAnnouncements = (announcements || []).slice(0, homeAnnouncementLimit);
+        const showAnnouncementMore = (announcements || []).length > homeAnnouncementLimit;
+    %>
+
+    
+<section class="shop-benefits">
+    <div class="shop-benefits-inner">
+        <div class="shop-benefit-item">
+            <span class="shop-benefit-icon">✓</span>
+            <span>Hàng chính hãng</span>
+        </div>
+        <div class="shop-benefit-item">
+            <span class="shop-benefit-icon">⚡</span>
+            <span>Giao nhanh toàn quốc</span>
+        </div>
+        <div class="shop-benefit-item">
+            <span class="shop-benefit-icon">🛡</span>
+            <span>Bảo hành rõ ràng</span>
+        </div>
+        <div class="shop-benefit-item">
+            <span class="shop-benefit-icon">☎</span>
+            <span>Hỗ trợ tận tâm</span>
+        </div>
+    </div>
+</section>
+
+<main class="page-shell">
         <div class="content-stack">
 
             <!-- ANNOUNCEMENTS -->
-            <section class="panel">
+            <section class="panel announcement-panel-shell">
                 <div class="panel-inner">
                     <div class="section-head">
                         <div class="section-title-wrap">
@@ -58,17 +86,26 @@
                             <p class="section-subtitle">Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
                         </div>
 
-                        <% if (hasMoreAnnouncements) { %>
+                        <% if (showAnnouncementMore) { %>
                             <a href="/announcements" class="section-link">Xem thêm</a>
                         <% } %>
                     </div>
 
-                    <% if (announcements && announcements.length > 0) { %>
+                    <% if (homeAnnouncements.length > 0) { %>
                         <div class="announcement-grid">
-                            <% announcements.forEach(function(item) { %>
+                            <% homeAnnouncements.forEach(function(item) { %>
                                 <article class="announcement-card">
                                     <span class="announcement-badge">Thông báo</span>
-                                    <h3 class="announcement-title"><%= item.title %></h3>
+
+                                    <button
+                                        type="button"
+                                        class="announcement-title-button announcement-open"
+                                        data-title="<%= item.title %>"
+                                        data-content="<%= item.content %>"
+                                        data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
+                                        <span class="announcement-title"><%= item.title %></span>
+                                    </button>
+
                                     <p class="announcement-content preview"><%= item.content %></p>
 
                                     <div class="announcement-meta">
@@ -81,19 +118,6 @@
                                             </div>
                                         <% } %>
                                     </div>
-
-                                    <% if (item.content && item.content.length > 120) { %>
-                                        <div class="announcement-actions">
-                                            <button
-                                                type="button"
-                                                class="announcement-readmore"
-                                                data-title="<%= item.title %>"
-                                                data-content="<%= item.content %>"
-                                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
-                                                Đọc thêm
-                                            </button>
-                                        </div>
-                                    <% } %>
                                 </article>
                             <% }) %>
                         </div>
@@ -107,7 +131,26 @@
             <section class="panel product-panel">
                 <div class="panel-inner">
                     <h2 class="section-title">Danh sách sản phẩm</h2>
+                    <div class="product-toolbar">
+    <div class="product-toolbar-left">
+        <div class="product-search-mini">
+            <input
+                type="text"
+                id="productSearchInput"
+                class="product-filter-input"
+                placeholder="Tìm nhanh theo tên sản phẩm...">
+            <div class="product-search-suggest" id="productSearchSuggest"></div>
+        </div>
+    </div>
 
+    <div class="product-toolbar-right">
+        <select id="productStatusFilter" class="product-filter-select">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang bán</option>
+            <option value="inactive">Ngừng bán</option>
+        </select>
+    </div>
+</div>
                     <% if (tutorials && tutorials.length > 0) { %>
                         <div class="product-table-wrap">
                             <table class="product-table">
@@ -124,7 +167,12 @@
                                 </thead>
                                 <tbody>
                                     <% tutorials.forEach(function(item) { %>
-                                        <tr>
+                                        <tr
+    class="product-row"
+    data-id="<%= item.id %>"
+    data-title="<%= (item.title || '').toLowerCase() %>"
+    data-name="<%= item.title || '' %>"
+    data-status="<%= item.published ? 'active' : 'inactive' %>">
                                             <td>
                                                 <div class="product-thumb">
                                                     <img src="/image/<%= item.id %>.jpg" alt="<%= item.title %>">
@@ -171,6 +219,58 @@
         </div>
     </main>
 
+    <div class="contact-float" aria-label="Liên hệ nhanh">
+        <a
+            href="https://m.me/yourpage"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-btn"
+            title="Nhắn Messenger">
+            <img src="/image/messenger.png" alt="Messenger">
+        </a>
+
+        <a
+            href="https://zalo.me/yourzalo"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-btn"
+            title="Nhắn Zalo">
+            <img src="/image/zalo.webp" alt="Zalo">
+        </a>
+    </div>
+
+    <footer class="footer-contact" id="contact">
+        <div class="page-shell footer-container">
+            <div class="footer-info">
+                <strong>PShop - Thế giới mua sắm đồ điện tử</strong>
+                <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+                <p>
+                    Hotline: <a href="tel:0123456789">0123 456 789</a>
+                    <span class="footer-dot">•</span>
+                    Email: <a href="mailto:contact@pshop.vn">contact@pshop.vn</a>
+                </p>
+            </div>
+
+            <div class="footer-social">
+                <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" title="Facebook" class="social-btn">
+                    <img src="/image/facebook.webp" alt="Facebook">
+                </a>
+
+                <a href="https://m.me/yourpage" target="_blank" rel="noopener noreferrer" title="Messenger" class="social-btn">
+                    <img src="/image/messenger.png" alt="Messenger">
+                </a>
+
+                <a href="https://zalo.me/yourzalo" target="_blank" rel="noopener noreferrer" title="Zalo" class="social-btn">
+                    <img src="/image/zalo.webp" alt="Zalo">
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 PShop. All rights reserved.
+        </div>
+    </footer>
+
     <div class="announcement-modal" id="announcementModal" aria-hidden="true">
         <div class="announcement-modal-card" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
             <button type="button" class="modal-close" id="closeAnnouncementModal" aria-label="Đóng">×</button>
@@ -212,7 +312,106 @@
                 window.location.href = "/products/" + encodeURIComponent(id);
             });
 
-            $(".announcement-readmore").on("click", function () {
+            function escapeHtml(text) {
+    return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function renderProductSuggestions() {
+    const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
+    const status = $("#productStatusFilter").val();
+    const $suggest = $("#productSearchSuggest");
+
+    if (!keyword) {
+        $suggest.removeClass("show").html("");
+        return;
+    }
+
+    const matched = [];
+
+    $(".product-row").each(function () {
+        const title = ($(this).attr("data-title") || "").toLowerCase();
+        const name = $(this).attr("data-name") || "";
+        const id = $(this).attr("data-id") || "";
+        const rowStatus = $(this).attr("data-status") || "";
+
+        const matchKeyword = title.includes(keyword);
+        const matchStatus = status === "all" || rowStatus === status;
+
+        if (matchKeyword && matchStatus) {
+            matched.push({
+                id,
+                name,
+                status: rowStatus
+            });
+        }
+    });
+
+    if (!matched.length) {
+        $suggest.html('<div class="product-suggest-empty">Không tìm thấy sản phẩm phù hợp.</div>');
+        $suggest.addClass("show");
+        return;
+    }
+
+    const html = matched.slice(0, 6).map(item => `
+        <div class="product-suggest-item" data-id="${item.id}">
+            <div class="product-suggest-name">${escapeHtml(item.name)}</div>
+            <div class="product-suggest-status ${item.status}">
+                ${item.status === "active" ? "Đang bán" : "Ngừng bán"}
+            </div>
+        </div>
+    `).join("");
+
+    $suggest.html(html).addClass("show");
+}
+
+function applyProductFilters() {
+    const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
+    const status = $("#productStatusFilter").val();
+
+    $(".product-row").each(function () {
+        const rowTitle = ($(this).attr("data-title") || "").toLowerCase();
+        const rowStatus = $(this).attr("data-status") || "";
+        const matchKeyword = !keyword || rowTitle.includes(keyword);
+        const matchStatus = status === "all" || rowStatus === status;
+
+        $(this).toggle(matchKeyword && matchStatus);
+    });
+
+    renderProductSuggestions();
+}
+
+$("#productSearchInput").on("input", function () {
+    applyProductFilters();
+});
+
+$("#productStatusFilter").on("change", function () {
+    applyProductFilters();
+});
+
+$(document).on("click", ".product-suggest-item", function () {
+    const id = $(this).attr("data-id");
+    if (id) {
+        window.location.href = "/products/" + encodeURIComponent(id);
+    }
+});
+
+$(document).on("click", function (e) {
+    if (!$(e.target).closest(".product-search-mini").length) {
+        $("#productSearchSuggest").removeClass("show");
+    }
+});
+
+$("#productSearchInput").on("focus", function () {
+    if ($(this).val().trim()) {
+        renderProductSuggestions();
+    }
+});
+            $(".announcement-open").on("click", function () {
                 openAnnouncementModal(
                     $(this).attr("data-title"),
                     $(this).attr("data-content"),
