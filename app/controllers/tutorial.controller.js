@@ -1,41 +1,14 @@
 const db = require("../models");
 const Tutorial = db.tutorials;
 const Order = db.orders;
-const Announcement = db.announcements;
 const Op = db.Sequelize.Op;
-
-function parseNonNegativeInt(value, defaultValue = 0) {
-  const parsed = parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : defaultValue;
-}
-
-function parsePositiveInt(value, defaultValue = 1) {
-  const parsed = parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
-}
-
-function parsePublishedValue(value) {
-  return (
-    value === true ||
-    value === "true" ||
-    value === 1 ||
-    value === "1" ||
-    value === "on"
-  );
-}
-
+const Announcement = db.announcements;
+const fs = require("fs");
+const path = require("path");
 module.exports = {
   getAll: async (req, res) => {
-    try {
-      const tutorials = await Tutorial.findAll({
-        order: [["id", "DESC"]],
-      });
-
-      return res.render("tutorial.ejs", { tutorials });
-    } catch (error) {
-      console.log("getAll tutorials error =", error);
-      return res.status(500).send("Lỗi khi lấy danh sách sản phẩm");
-    }
+    let tutorials = await Tutorial.findAll();
+    return res.render("tutorial.ejs", { tutorials });
   },
 
   getLandingPage: async (req, res) => {
@@ -47,7 +20,7 @@ module.exports = {
         limit: 6,
       });
 
-      const announcements = await Announcement.findAll({
+      let announcements = await Announcement.findAll({
         where: {
           [Op.or]: [
             { isPermanent: true },
@@ -112,32 +85,24 @@ module.exports = {
 
   create: async (req, res) => {
     try {
-      const quantity = parseNonNegativeInt(req.body.quantity, 0);
-      const price = parseNonNegativeInt(req.body.price, 0);
+      const parsedPrice = parseInt(req.body.price, 10);
+      const parsedQuantity = parseInt(req.body.quantity, 10);
 
-      const createdTutorial = await Tutorial.create({
+      const quantity =
+        Number.isInteger(parsedQuantity) && parsedQuantity >= 0
+          ? parsedQuantity
+          : 0;
+
+      const tutorial = {
         title: req.body.title,
         description: req.body.description,
-        price,
-        quantity,
-        published: parsePublishedValue(req.body.published) && quantity > 0,
-      });
+        price:
+          Number.isInteger(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0,
+        quantity: quantity,
+        published: req.body.published === "true" && quantity > 0,
+      };
 
-      if (req.file && req.file.buffer) {
-        const fs = require("fs");
-        const path = require("path");
-        const imageDir = path.join(__dirname, "../public/image");
-
-        if (!fs.existsSync(imageDir)) {
-          fs.mkdirSync(imageDir, { recursive: true });
-        }
-
-        fs.writeFileSync(
-          path.join(imageDir, `${createdTutorial.id}.jpg`),
-          req.file.buffer,
-        );
-      }
-
+      await Tutorial.create(tutorial);
       return res.redirect("/admin/products");
     } catch (error) {
       console.log("create tutorial error =", error);
@@ -161,10 +126,9 @@ module.exports = {
 
       const tutorials = await Tutorial.findAll({
         where: tutorialWhere,
-        order: [["id", "DESC"]],
       });
 
-      const announcements = await Announcement.findAll({
+      let announcements = await Announcement.findAll({
         where: {
           [Op.or]: [
             { isPermanent: true },
@@ -186,6 +150,7 @@ module.exports = {
         order: [["createdAt", "DESC"]],
       });
 
+      // chống trùng theo id
       const uniqueAnnouncements = [];
       const seenIds = new Set();
 
@@ -196,6 +161,7 @@ module.exports = {
         }
       }
 
+      // format giờ VN
       const formatVN = (date) => {
         if (!date) return "";
         return new Intl.DateTimeFormat("vi-VN", {
@@ -220,7 +186,7 @@ module.exports = {
         announcements: formattedAnnouncements.slice(0, 3),
         hasMoreAnnouncements: formattedAnnouncements.length > 3,
         user: req.session.user,
-        q,
+        q: q,
       });
     } catch (error) {
       console.log("getHomesalePage error =", error);
@@ -245,17 +211,13 @@ module.exports = {
 
       return res.render("buypage.ejs", { tutorial });
     } catch (error) {
-      console.log("getBuyPage error =", error);
       return res.status(500).send("Server error");
     }
   },
 
   buyTutorial: async (req, res) => {
-    const transaction = await db.sequelize.transaction();
-
     try {
       if (!req.session.user) {
-        await transaction.rollback();
         return res.status(401).json({
           message: "Bạn cần đăng nhập để mua hàng",
         });
@@ -264,66 +226,62 @@ module.exports = {
       const { tutorialId, quantity, email, phone } = req.body;
 
       if (!email || !phone) {
-        await transaction.rollback();
         return res.status(400).json({
           message: "Vui lòng nhập email và số điện thoại",
         });
       }
 
-      const tutorial = await Tutorial.findByPk(tutorialId, { transaction });
+      const tutorial = await Tutorial.findByPk(tutorialId);
 
       if (!tutorial) {
-        await transaction.rollback();
         return res.status(404).json({
           message: "Sản phẩm không tồn tại",
         });
       }
 
-      const buyQuantity = parsePositiveInt(quantity, 1);
+      const parsedQuantity = parseInt(quantity, 10);
+      const buyQuantity =
+        Number.isInteger(parsedQuantity) && parsedQuantity > 0
+          ? parsedQuantity
+          : 1;
 
       if (!tutorial.published || tutorial.quantity <= 0) {
-        await transaction.rollback();
         return res.status(400).json({
           message: "Sản phẩm đã hết hàng hoặc ngừng bán",
         });
       }
 
       if (buyQuantity > tutorial.quantity) {
-        await transaction.rollback();
         return res.status(400).json({
           message: "Số lượng mua vượt quá tồn kho",
         });
       }
 
-      const order = await Order.create(
-        {
-          userId: req.session.user.id,
-          tutorialId: tutorial.id,
-          title: tutorial.title,
-          quantity: buyQuantity,
-          email,
-          phone,
-          price: tutorial.price || 0,
-          status: "pending",
-        },
-        { transaction },
-      );
+      const order = await Order.create({
+        userId: req.session.user.id,
+        tutorialId: tutorial.id,
+        title: tutorial.title,
+        quantity: buyQuantity,
+        email,
+        phone,
+        price: tutorial.price || 0,
+        status: "pending",
+      });
 
       tutorial.quantity = tutorial.quantity - buyQuantity;
+
       if (tutorial.quantity <= 0) {
         tutorial.quantity = 0;
         tutorial.published = false;
       }
-      await tutorial.save({ transaction });
 
-      await transaction.commit();
+      await tutorial.save();
 
       return res.json({
-        message: "Mua hàng thành công",
+        message: "Buy success",
         order,
       });
     } catch (error) {
-      await transaction.rollback();
       console.log("buyTutorial error =", error);
       return res.status(500).json({
         message: "Error when buying tutorial",
@@ -348,7 +306,7 @@ module.exports = {
           });
         }
       })
-      .catch(() => {
+      .catch((err) => {
         res.status(500).send({
           message: "Error retrieving Tutorial with id=" + id,
         });
@@ -373,13 +331,140 @@ module.exports = {
       return res.status(500).send("Lỗi khi lấy danh sách orders");
     }
   },
-
-  updateOrderStatus: async (req, res) => {
-    const transaction = await db.sequelize.transaction();
-
+  getRevenuePage: async (req, res) => {
     try {
       if (!req.session.user || req.session.user.role !== "admin") {
-        await transaction.rollback();
+        return res.status(403).send("Bạn không có quyền vào trang admin");
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      const parsedYear = parseInt(req.query.year, 10);
+      const parsedMonth = parseInt(req.query.month, 10);
+
+      const selectedYear = Number.isInteger(parsedYear)
+        ? parsedYear
+        : currentYear;
+      const selectedMonth =
+        Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12
+          ? parsedMonth
+          : currentMonth;
+
+      const tutorials = await Tutorial.findAll({
+        order: [["id", "DESC"]],
+      });
+
+      const tutorialMap = new Map();
+      tutorials.forEach((tutorial) => {
+        tutorialMap.set(tutorial.id, tutorial);
+      });
+
+      const completedOrders = await Order.findAll({
+        where: { status: "completed" },
+        order: [["createdAt", "DESC"]],
+      });
+
+      const availableYearSet = new Set([currentYear]);
+      const productStatsMap = new Map();
+
+      let totalRevenueMonth = 0;
+      let totalUnitsSoldMonth = 0;
+      let totalOrdersMonth = 0;
+
+      completedOrders.forEach((order) => {
+        const orderDate = order.createdAt ? new Date(order.createdAt) : null;
+
+        if (!orderDate || Number.isNaN(orderDate.getTime())) {
+          return;
+        }
+
+        const orderYear = orderDate.getFullYear();
+        const orderMonth = orderDate.getMonth() + 1;
+        availableYearSet.add(orderYear);
+
+        if (orderYear !== selectedYear || orderMonth !== selectedMonth) {
+          return;
+        }
+
+        const quantity = Number(order.quantity) || 0;
+        const unitPrice = Number(order.price) || 0;
+        const revenue = quantity * unitPrice;
+
+        totalRevenueMonth += revenue;
+        totalUnitsSoldMonth += quantity;
+        totalOrdersMonth += 1;
+
+        const tutorial = tutorialMap.get(order.tutorialId);
+        const existing = productStatsMap.get(order.tutorialId) || {
+          id: order.tutorialId,
+          title:
+            tutorial?.title || order.title || `Sản phẩm #${order.tutorialId}`,
+          price: tutorial?.price || unitPrice,
+          orderCount: 0,
+          unitsSold: 0,
+          revenue: 0,
+        };
+
+        existing.orderCount += 1;
+        existing.unitsSold += quantity;
+        existing.revenue += revenue;
+
+        productStatsMap.set(order.tutorialId, existing);
+      });
+
+      const monthOptions = [
+        { value: 1, label: "Tháng 1" },
+        { value: 2, label: "Tháng 2" },
+        { value: 3, label: "Tháng 3" },
+        { value: 4, label: "Tháng 4" },
+        { value: 5, label: "Tháng 5" },
+        { value: 6, label: "Tháng 6" },
+        { value: 7, label: "Tháng 7" },
+        { value: 8, label: "Tháng 8" },
+        { value: 9, label: "Tháng 9" },
+        { value: 10, label: "Tháng 10" },
+        { value: 11, label: "Tháng 11" },
+        { value: 12, label: "Tháng 12" },
+      ];
+
+      const selectedMonthLabel =
+        monthOptions.find((item) => item.value === selectedMonth)?.label ||
+        `Tháng ${selectedMonth}`;
+
+      const productStats = Array.from(productStatsMap.values()).sort(
+        (a, b) =>
+          b.unitsSold - a.unitsSold ||
+          b.revenue - a.revenue ||
+          b.orderCount - a.orderCount ||
+          a.id - b.id,
+      );
+
+      const availableYears = Array.from(availableYearSet).sort((a, b) => b - a);
+      const soldProductCount = productStats.length;
+
+      return res.render("revenue.ejs", {
+        selectedYear,
+        selectedMonth,
+        selectedMonthLabel,
+        availableYears,
+        monthOptions,
+        totalRevenueMonth,
+        totalUnitsSoldMonth,
+        totalOrdersMonth,
+        soldProductCount,
+        productStats,
+      });
+    } catch (error) {
+      console.log("getRevenuePage error =", error);
+      return res.status(500).send("Lỗi khi tải trang doanh thu");
+    }
+  },
+
+  updateOrderStatus: async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
         return res
           .status(403)
           .send("Bạn không có quyền cập nhật trạng thái đơn hàng");
@@ -395,67 +480,20 @@ module.exports = {
         "completed",
         "cancelled",
       ];
-
       if (!allowedStatuses.includes(status)) {
-        await transaction.rollback();
         return res.status(400).send("Trạng thái không hợp lệ");
       }
 
-      const order = await Order.findByPk(id, { transaction });
+      const order = await Order.findByPk(id);
       if (!order) {
-        await transaction.rollback();
         return res.status(404).send("Không tìm thấy đơn hàng");
       }
 
-      if (order.status !== status) {
-        const tutorial = await Tutorial.findByPk(order.tutorialId, {
-          transaction,
-        });
-
-        if (tutorial) {
-          const isCancelling =
-            order.status !== "cancelled" && status === "cancelled";
-          const isReopening =
-            order.status === "cancelled" && status !== "cancelled";
-
-          if (isCancelling) {
-            tutorial.quantity =
-              parseNonNegativeInt(tutorial.quantity, 0) + order.quantity;
-            await tutorial.save({ transaction });
-          }
-
-          if (isReopening) {
-            if (!tutorial.published || tutorial.quantity <= 0) {
-              await transaction.rollback();
-              return res
-                .status(400)
-                .send("Sản phẩm đang hết hàng hoặc ngừng bán");
-            }
-
-            if (order.quantity > tutorial.quantity) {
-              await transaction.rollback();
-              return res
-                .status(400)
-                .send("Không đủ tồn kho để mở lại đơn hàng này");
-            }
-
-            tutorial.quantity = tutorial.quantity - order.quantity;
-            if (tutorial.quantity <= 0) {
-              tutorial.quantity = 0;
-              tutorial.published = false;
-            }
-            await tutorial.save({ transaction });
-          }
-        }
-      }
-
       order.status = status;
-      await order.save({ transaction });
-      await transaction.commit();
+      await order.save();
 
       return res.redirect("/admin/orders");
     } catch (error) {
-      await transaction.rollback();
       console.log("updateOrderStatus error =", error);
       return res.status(500).send("Lỗi cập nhật trạng thái đơn hàng");
     }
@@ -487,39 +525,27 @@ module.exports = {
     }
   },
 
-  update: async (req, res) => {
-    try {
-      const id = req.params.id;
-      const quantity = parseNonNegativeInt(req.body.quantity, 0);
-      const updateData = {
-        title: req.body.title,
-        description: req.body.description,
-        quantity,
-        published: parsePublishedValue(req.body.published) && quantity > 0,
-      };
+  update: (req, res) => {
+    const id = req.params.id;
 
-      if (req.body.price !== undefined) {
-        updateData.price = parseNonNegativeInt(req.body.price, 0);
-      }
-
-      const [updatedRows] = await Tutorial.update(updateData, {
-        where: { id },
-      });
-
-      if (updatedRows === 1) {
-        return res.send({
-          message: "Tutorial was updated successfully.",
+    Tutorial.update(req.body, {
+      where: { id: id },
+    })
+      .then((num) => {
+        if (num == 1) {
+          res.send({
+            message: "Tutorial was updated successfully.",
+          });
+        } else {
+          res.send({
+            message: `Cannot update Tutorial with id=${id}. Maybe Tutorial was not found or req.body is empty!`,
+          });
+        }
+      })
+      .catch((err) => {
+        res.status(500).send({
+          message: "Error updating Tutorial with id=" + id,
         });
-      }
-
-      return res.send({
-        message: `Cannot update Tutorial with id=${id}. Maybe Tutorial was not found or req.body is empty!`,
       });
-    } catch (error) {
-      console.log("update tutorial error =", error);
-      return res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.params.id,
-      });
-    }
   },
 };

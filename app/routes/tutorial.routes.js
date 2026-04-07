@@ -10,6 +10,7 @@ const {
   getAllOrders,
   getMyOrders,
   updateOrderStatus,
+  getRevenuePage,
 } = require("../controllers/tutorial.controller");
 
 const multer = require("multer");
@@ -17,7 +18,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 
 const upload = multer({
-  storage,
+  storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024,
   },
@@ -30,22 +31,14 @@ const upload = multer({
   },
 });
 
-function checkAdmin(req, res, next) {
-  if (!req.session.user || req.session.user.role !== "admin") {
-    return res.status(403).send("Bạn không có quyền truy cập chức năng admin");
-  }
-  next();
-}
-
 module.exports = (app) => {
   const router = require("express").Router();
 
   // Admin product pages
-  router.get("/", checkAdmin, getAll);
-  router.get("/new", checkAdmin, getCreate);
+  router.get("/", getAll);
+  router.get("/new", getCreate);
   router.post(
     "/",
-    checkAdmin,
     (req, res, next) => {
       upload.single("image")(req, res, function (err) {
         if (err) {
@@ -56,8 +49,8 @@ module.exports = (app) => {
     },
     create,
   );
-  router.get("/:id", checkAdmin, findOne);
-  router.put("/:id", checkAdmin, update);
+  router.get("/:id", findOne);
+  router.put("/:id", update);
 
   app.use("/admin/products", router);
 
@@ -69,8 +62,9 @@ module.exports = (app) => {
   app.post("/orders", buyTutorial);
 
   // Admin orders page
-  app.get("/admin/orders", checkAdmin, getAllOrders);
-  app.post("/admin/orders/:id/status", checkAdmin, updateOrderStatus);
+  app.get("/admin/orders", getAllOrders);
+  app.post("/admin/orders/:id/status", updateOrderStatus);
+  app.get("/admin/revenue", getRevenuePage);
 
   // User orders page
   app.get("/my-orders", getMyOrders);
