@@ -184,6 +184,10 @@
                 <div class="product-grid three-columns">
                     <% if (tutorials && tutorials.length > 0) { %>
                         <% tutorials.forEach(function(item) { %>
+                            <%
+                                const isOutOfStock = Number(item.quantity || 0) <= 0;
+                                const canBuy = item.published && !isOutOfStock;
+                            %>
                             <article class="product-card">
                                 <button
                                     type="button"
@@ -194,7 +198,7 @@
                                     data-product-description="<%= item.description %>"
                                     data-product-price="<%= item.price || 0 %>"
                                     data-product-image="/image/<%= item.id %>.jpg"
-                                    data-product-published="<%= item.published ? 'true' : 'false' %>"
+                                    data-product-published="<%= canBuy ? 'true' : 'false' %>"
                                     data-product-link="/products/<%= item.id %>">
                                     <span data-wishlist-icon>♡</span>
                                     <span data-wishlist-text>Yêu thích</span>
@@ -215,7 +219,7 @@
                                     <%= Number(item.price || 0).toLocaleString("vi-VN") %>đ
                                 </span>
 
-                                <% if (item.published) { %>
+                                <% if (canBuy) { %>
     <% if (user) { %>
         <a href="/products/<%= item.id %>" class="buy-product-btn">
             Mua
@@ -227,7 +231,7 @@
     <% } %>
 <% } else { %>
     <span class="buy-product-btn disabled">
-        Hết bán
+        <%= isOutOfStock ? 'Hết hàng' : 'Ngừng bán' %>
     </span>
 <% } %>
                             </article>
@@ -517,103 +521,6 @@
                 refreshWishlist();
             }
         })();
-    </script>
-
-    <script>
-        const heroSlides = document.querySelectorAll('#heroSlider .hero-slide');
-        const heroDots = document.querySelectorAll('#heroSlider .hero-dot');
-        const heroPrev = document.getElementById('heroPrev');
-        const heroNext = document.getElementById('heroNext');
-        let currentHeroSlide = 0;
-        let heroAutoPlay;
-
-        function showHeroSlide(index) {
-            currentHeroSlide = (index + heroSlides.length) % heroSlides.length;
-
-            heroSlides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === currentHeroSlide);
-            });
-
-            heroDots.forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentHeroSlide);
-            });
-        }
-
-        function nextHeroSlide() {
-            showHeroSlide(currentHeroSlide + 1);
-        }
-
-        function prevHeroSlide() {
-            showHeroSlide(currentHeroSlide - 1);
-        }
-
-        function startHeroAutoPlay() {
-            heroAutoPlay = setInterval(nextHeroSlide, 3500);
-        }
-
-        function resetHeroAutoPlay() {
-            clearInterval(heroAutoPlay);
-            startHeroAutoPlay();
-        }
-
-        function openAnnouncementModal(title, content, meta) {
-            document.getElementById("announcementModalTitle").textContent = title || "Thông báo";
-            document.getElementById("announcementModalContent").textContent = content || "";
-            document.getElementById("announcementModalMeta").textContent = meta || "";
-            document.getElementById("announcementModal").classList.add("show");
-            document.body.classList.add("modal-open");
-            document.getElementById("announcementModal").setAttribute("aria-hidden", "false");
-        }
-
-        function closeAnnouncementModal() {
-            document.getElementById("announcementModal").classList.remove("show");
-            document.body.classList.remove("modal-open");
-            document.getElementById("announcementModal").setAttribute("aria-hidden", "true");
-        }
-
-        heroNext.addEventListener('click', () => {
-            nextHeroSlide();
-            resetHeroAutoPlay();
-        });
-
-        heroPrev.addEventListener('click', () => {
-            prevHeroSlide();
-            resetHeroAutoPlay();
-        });
-
-        heroDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                showHeroSlide(index);
-                resetHeroAutoPlay();
-            });
-        });
-
-        document.querySelectorAll(".announcement-open").forEach((button) => {
-            button.addEventListener("click", () => {
-                openAnnouncementModal(
-                    button.getAttribute("data-title"),
-                    button.getAttribute("data-content"),
-                    button.getAttribute("data-meta")
-                );
-            });
-        });
-
-        document.getElementById("closeAnnouncementModal").addEventListener("click", closeAnnouncementModal);
-
-        document.getElementById("announcementModal").addEventListener("click", function (e) {
-            if (e.target === this) {
-                closeAnnouncementModal();
-            }
-        });
-
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape") {
-                closeAnnouncementModal();
-            }
-        });
-
-        showHeroSlide(0);
-        startHeroAutoPlay();
     </script>
 </body>
 </html>

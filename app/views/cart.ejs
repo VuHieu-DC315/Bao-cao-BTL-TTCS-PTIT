@@ -42,13 +42,13 @@
             phone: phone
           }),
           success: function (result) {
-            alert("Thanh toán thành công!");
+            alert(result?.message || "Thanh toán thành công!");
             $("#buyModal").hide();
             window.location.href = "/cart";
           },
           error: function (error) {
             console.log(error);
-            alert("Thanh toán thất bại!");
+            alert(error?.responseJSON?.message || "Thanh toán thất bại!");
           }
         });
       });

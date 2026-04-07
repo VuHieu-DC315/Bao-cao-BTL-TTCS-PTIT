@@ -1,28 +1,23 @@
-module.exports = app => {
-    const tutorials = require("../controllers/api.controller.js");
+module.exports = (app) => {
+  const tutorials = require("../controllers/api.controller.js");
+  const router = require("express").Router();
 
-    var router = require("express").Router();
+  function checkAdmin(req, res, next) {
+    if (!req.session.user || req.session.user.role !== "admin") {
+      return res.status(403).send({
+        message: "Bạn không có quyền truy cập API admin",
+      });
+    }
+    next();
+  }
 
-    // Create a new Tutorial
-    router.post("/", tutorials.create);
+  router.post("/", checkAdmin, tutorials.create);
+  router.get("/", checkAdmin, tutorials.findAll);
+  router.get("/published", tutorials.findAllPublished);
+  router.get("/:id", checkAdmin, tutorials.findOne);
+  router.put("/:id", checkAdmin, tutorials.update);
+  router.delete("/:id", checkAdmin, tutorials.delete);
+  router.delete("/", checkAdmin, tutorials.deleteAll);
 
-    // Retrieve all Tutorials
-    router.get("/", tutorials.findAll);
-
-    // Retrieve all published Tutorials
-    router.get("/published", tutorials.findAllPublished);
-
-    // Retrieve a single Tutorial with id
-    router.get("/:id", tutorials.findOne);
-
-    // Update a Tutorial with id
-    router.put("/:id", tutorials.update);
-
-    // Delete a Tutorial with id
-    router.delete("/:id", tutorials.delete);
-
-    // Delete all Tutorials
-    router.delete("/", tutorials.deleteAll);
-
-    app.use('/api/tutorials', router);
+  app.use("/api/tutorials", router);
 };

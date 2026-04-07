@@ -36,8 +36,8 @@
             <div class="shop-actions">
                 <a href="/cart" class="nav-cart-link">Giỏ hàng</a>
                 <% if (user) { %>
-    <a href="/my-orders" class="nav-cart-link">Đơn hàng của tôi</a>
-<% } %>
+                    <a href="/my-orders" class="nav-cart-link">Đơn hàng của tôi</a>
+                <% } %>
                 <div class="wishlist-popover-wrap" id="wishlistPopoverWrap">
                     <button type="button" id="wishlistToggleBtn" class="nav-cart-link wishlist-header-link">
                         Yêu thích <span class="wishlist-count-badge" data-wishlist-count>0</span>
@@ -56,7 +56,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <% if (user) { %>
                     <a href="/logout" class="nav-auth-btn">Đăng xuất</a>
                 <% } else { %>
@@ -72,29 +72,28 @@
         const showAnnouncementMore = (announcements || []).length > homeAnnouncementLimit;
     %>
 
-    
-<section class="shop-benefits">
-    <div class="shop-benefits-inner">
-        <div class="shop-benefit-item">
-            <span class="shop-benefit-icon">✓</span>
-            <span>Hàng chính hãng</span>
+    <section class="shop-benefits">
+        <div class="shop-benefits-inner">
+            <div class="shop-benefit-item">
+                <span class="shop-benefit-icon">✓</span>
+                <span>Hàng chính hãng</span>
+            </div>
+            <div class="shop-benefit-item">
+                <span class="shop-benefit-icon">⚡</span>
+                <span>Giao nhanh toàn quốc</span>
+            </div>
+            <div class="shop-benefit-item">
+                <span class="shop-benefit-icon">🛡</span>
+                <span>Bảo hành rõ ràng</span>
+            </div>
+            <div class="shop-benefit-item">
+                <span class="shop-benefit-icon">☎</span>
+                <span>Hỗ trợ tận tâm</span>
+            </div>
         </div>
-        <div class="shop-benefit-item">
-            <span class="shop-benefit-icon">⚡</span>
-            <span>Giao nhanh toàn quốc</span>
-        </div>
-        <div class="shop-benefit-item">
-            <span class="shop-benefit-icon">🛡</span>
-            <span>Bảo hành rõ ràng</span>
-        </div>
-        <div class="shop-benefit-item">
-            <span class="shop-benefit-icon">☎</span>
-            <span>Hỗ trợ tận tâm</span>
-        </div>
-    </div>
-</section>
+    </section>
 
-<main class="page-shell">
+    <main class="page-shell">
         <div class="content-stack">
 
             <!-- ANNOUNCEMENTS -->
@@ -153,25 +152,27 @@
                 <div class="panel-inner">
                     <h2 class="section-title">Danh sách sản phẩm</h2>
                     <div class="product-toolbar">
-    <div class="product-toolbar-left">
-        <div class="product-search-mini">
-            <input
-                type="text"
-                id="productSearchInput"
-                class="product-filter-input"
-                placeholder="Tìm nhanh theo tên sản phẩm...">
-            <div class="product-search-suggest" id="productSearchSuggest"></div>
-        </div>
-    </div>
+                        <div class="product-toolbar-left">
+                            <div class="product-search-mini">
+                                <input
+                                    type="text"
+                                    id="productSearchInput"
+                                    class="product-filter-input"
+                                    placeholder="Tìm nhanh theo tên sản phẩm...">
+                                <div class="product-search-suggest" id="productSearchSuggest"></div>
+                            </div>
+                        </div>
 
-    <div class="product-toolbar-right">
-        <select id="productStatusFilter" class="product-filter-select">
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang bán</option>
-            <option value="inactive">Ngừng bán</option>
-        </select>
-    </div>
-</div>
+                        <div class="product-toolbar-right">
+                            <select id="productStatusFilter" class="product-filter-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="active">Đang bán</option>
+                                <option value="out_of_stock">Hết hàng</option>
+                                <option value="inactive">Ngừng bán</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <% if (tutorials && tutorials.length > 0) { %>
                         <div class="product-table-wrap">
                             <table class="product-table">
@@ -188,12 +189,18 @@
                                 </thead>
                                 <tbody>
                                     <% tutorials.forEach(function(item) { %>
+                                        <%
+                                            const isOutOfStock = Number(item.quantity || 0) <= 0;
+                                            const canBuy = item.published && !isOutOfStock;
+                                            const statusKey = isOutOfStock ? 'out_of_stock' : (item.published ? 'active' : 'inactive');
+                                            const statusText = isOutOfStock ? 'Hết hàng' : (item.published ? 'Đang bán' : 'Ngừng bán');
+                                        %>
                                         <tr
-    class="product-row"
-    data-id="<%= item.id %>"
-    data-title="<%= (item.title || '').toLowerCase() %>"
-    data-name="<%= item.title || '' %>"
-    data-status="<%= item.published ? 'active' : 'inactive' %>">
+                                            class="product-row"
+                                            data-id="<%= item.id %>"
+                                            data-title="<%= (item.title || '').toLowerCase() %>"
+                                            data-name="<%= item.title || '' %>"
+                                            data-status="<%= statusKey %>">
                                             <td>
                                                 <div class="product-thumb">
                                                     <img src="/image/<%= item.id %>.jpg" alt="<%= item.title %>">
@@ -214,8 +221,8 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="status-badge <%= item.published ? 'active' : 'inactive' %>">
-                                                    <%= item.published ? "Đang bán" : "Ngừng bán" %>
+                                                <span class="status-badge <%= canBuy ? 'active' : 'inactive' %>">
+                                                    <%= statusText %>
                                                 </span>
                                             </td>
                                             <td>
@@ -223,8 +230,8 @@
                                                     <button
                                                         class="btnBuy buy-btn"
                                                         data-id="<%= item.id %>"
-                                                        <%= item.published ? "" : "disabled" %>>
-                                                        <%= item.published ? "Mua ngay" : "Ngừng bán" %>
+                                                        <%= canBuy ? "" : "disabled" %>>
+                                                        <%= canBuy ? "Mua ngay" : statusText %>
                                                     </button>
                                                     <button
                                                         type="button"
@@ -235,7 +242,7 @@
                                                         data-product-description="<%= item.description %>"
                                                         data-product-price="<%= item.price || 0 %>"
                                                         data-product-image="/image/<%= item.id %>.jpg"
-                                                        data-product-published="<%= item.published ? 'true' : 'false' %>"
+                                                        data-product-published="<%= canBuy ? 'true' : 'false' %>"
                                                         data-product-link="/products/<%= item.id %>">
                                                         <span data-wishlist-icon>♡</span>
                                                         <span data-wishlist-text>Yêu thích</span>
@@ -319,7 +326,6 @@
 
     <!-- JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
 
     <script>
         (function () {
@@ -564,104 +570,111 @@
             });
 
             function escapeHtml(text) {
-    return String(text || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
+                return String(text || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#039;");
+            }
 
-function renderProductSuggestions() {
-    const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
-    const status = $("#productStatusFilter").val();
-    const $suggest = $("#productSearchSuggest");
+            function getStatusText(status) {
+                if (status === "active") return "Đang bán";
+                if (status === "out_of_stock") return "Hết hàng";
+                return "Ngừng bán";
+            }
 
-    if (!keyword) {
-        $suggest.removeClass("show").html("");
-        return;
-    }
+            function renderProductSuggestions() {
+                const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
+                const status = $("#productStatusFilter").val();
+                const $suggest = $("#productSearchSuggest");
 
-    const matched = [];
+                if (!keyword) {
+                    $suggest.removeClass("show").html("");
+                    return;
+                }
 
-    $(".product-row").each(function () {
-        const title = ($(this).attr("data-title") || "").toLowerCase();
-        const name = $(this).attr("data-name") || "";
-        const id = $(this).attr("data-id") || "";
-        const rowStatus = $(this).attr("data-status") || "";
+                const matched = [];
 
-        const matchKeyword = title.includes(keyword);
-        const matchStatus = status === "all" || rowStatus === status;
+                $(".product-row").each(function () {
+                    const title = ($(this).attr("data-title") || "").toLowerCase();
+                    const name = $(this).attr("data-name") || "";
+                    const id = $(this).attr("data-id") || "";
+                    const rowStatus = $(this).attr("data-status") || "";
 
-        if (matchKeyword && matchStatus) {
-            matched.push({
-                id,
-                name,
-                status: rowStatus
+                    const matchKeyword = title.includes(keyword);
+                    const matchStatus = status === "all" || rowStatus === status;
+
+                    if (matchKeyword && matchStatus) {
+                        matched.push({
+                            id,
+                            name,
+                            status: rowStatus
+                        });
+                    }
+                });
+
+                if (!matched.length) {
+                    $suggest.html('<div class="product-suggest-empty">Không tìm thấy sản phẩm phù hợp.</div>');
+                    $suggest.addClass("show");
+                    return;
+                }
+
+                const html = matched.slice(0, 6).map(item => `
+                    <div class="product-suggest-item" data-id="${item.id}">
+                        <div class="product-suggest-name">${escapeHtml(item.name)}</div>
+                        <div class="product-suggest-status ${item.status}">
+                            ${getStatusText(item.status)}
+                        </div>
+                    </div>
+                `).join("");
+
+                $suggest.html(html).addClass("show");
+            }
+
+            function applyProductFilters() {
+                const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
+                const status = $("#productStatusFilter").val();
+
+                $(".product-row").each(function () {
+                    const rowTitle = ($(this).attr("data-title") || "").toLowerCase();
+                    const rowStatus = $(this).attr("data-status") || "";
+                    const matchKeyword = !keyword || rowTitle.includes(keyword);
+                    const matchStatus = status === "all" || rowStatus === status;
+
+                    $(this).toggle(matchKeyword && matchStatus);
+                });
+
+                renderProductSuggestions();
+            }
+
+            $("#productSearchInput").on("input", function () {
+                applyProductFilters();
             });
-        }
-    });
 
-    if (!matched.length) {
-        $suggest.html('<div class="product-suggest-empty">Không tìm thấy sản phẩm phù hợp.</div>');
-        $suggest.addClass("show");
-        return;
-    }
+            $("#productStatusFilter").on("change", function () {
+                applyProductFilters();
+            });
 
-    const html = matched.slice(0, 6).map(item => `
-        <div class="product-suggest-item" data-id="${item.id}">
-            <div class="product-suggest-name">${escapeHtml(item.name)}</div>
-            <div class="product-suggest-status ${item.status}">
-                ${item.status === "active" ? "Đang bán" : "Ngừng bán"}
-            </div>
-        </div>
-    `).join("");
+            $(document).on("click", ".product-suggest-item", function () {
+                const id = $(this).attr("data-id");
+                if (id) {
+                    window.location.href = "/products/" + encodeURIComponent(id);
+                }
+            });
 
-    $suggest.html(html).addClass("show");
-}
+            $(document).on("click", function (e) {
+                if (!$(e.target).closest(".product-search-mini").length) {
+                    $("#productSearchSuggest").removeClass("show");
+                }
+            });
 
-function applyProductFilters() {
-    const keyword = ($("#productSearchInput").val() || "").trim().toLowerCase();
-    const status = $("#productStatusFilter").val();
+            $("#productSearchInput").on("focus", function () {
+                if ($(this).val().trim()) {
+                    renderProductSuggestions();
+                }
+            });
 
-    $(".product-row").each(function () {
-        const rowTitle = ($(this).attr("data-title") || "").toLowerCase();
-        const rowStatus = $(this).attr("data-status") || "";
-        const matchKeyword = !keyword || rowTitle.includes(keyword);
-        const matchStatus = status === "all" || rowStatus === status;
-
-        $(this).toggle(matchKeyword && matchStatus);
-    });
-
-    renderProductSuggestions();
-}
-
-$("#productSearchInput").on("input", function () {
-    applyProductFilters();
-});
-
-$("#productStatusFilter").on("change", function () {
-    applyProductFilters();
-});
-
-$(document).on("click", ".product-suggest-item", function () {
-    const id = $(this).attr("data-id");
-    if (id) {
-        window.location.href = "/products/" + encodeURIComponent(id);
-    }
-});
-
-$(document).on("click", function (e) {
-    if (!$(e.target).closest(".product-search-mini").length) {
-        $("#productSearchSuggest").removeClass("show");
-    }
-});
-
-$("#productSearchInput").on("focus", function () {
-    if ($(this).val().trim()) {
-        renderProductSuggestions();
-    }
-});
             $(".announcement-open").on("click", function () {
                 openAnnouncementModal(
                     $(this).attr("data-title"),

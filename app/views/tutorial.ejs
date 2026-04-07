@@ -73,6 +73,7 @@
                             <th>ID sản phẩm</th>
                             <th>Tên sản phẩm</th>
                             <th>Thông số kỹ thuật</th>
+                            <th>Số lượng</th>
                             <th>Trạng thái hàng</th>
                             <th>Thao tác</th>
                         </tr>
@@ -90,18 +91,23 @@
                                         <%= item.id %>
                                     </span>
                                 </td>
-                                <td class="tdTitle title-cell"><strong>
-                                        <%= item.title %>
-                                    </strong></td>
+                                <td class="tdTitle title-cell">
+                                    <strong><%= item.title %></strong>
+                                </td>
                                 <td class="tdDescription desc-cell">
                                     <%= item.description %>
                                 </td>
+                                <td class="tdQuantity">
+                                    <%= item.quantity || 0 %>
+                                </td>
                                 <td class="tdPublished">
-                                    <% if (item.published) { %>
+                                    <% if ((item.quantity || 0) <= 0) { %>
+                                        <span class="status-badge status-draft">Hết hàng</span>
+                                    <% } else if (item.published) { %>
                                         <span class="status-badge status-active">Đang kinh doanh</span>
-                                        <% } else { %>
-                                            <span class="status-badge status-draft">Ngừng kinh doanh</span>
-                                            <% } %>
+                                    <% } else { %>
+                                        <span class="status-badge status-draft">Ngừng kinh doanh</span>
+                                    <% } %>
                                 </td>
                                 <td>
                                     <div class="action-group">
@@ -112,11 +118,12 @@
                                     </div>
                                 </td>
                             </tr>
-                            <% }); %>
+                        <% }); %>
                     </tbody>
                 </table>
             </div>
         </section>
+
         <div id="updateModal" class="modal-overlay" style="display: none;">
             <div class="modal-box">
                 <button id="closeModal" class="modal-close" type="button"
@@ -128,16 +135,25 @@
                         <p>Thay đổi tên, mô tả hoặc trạng thái hiển thị trên website</p>
                     </div>
                 </div>
+
                 <input type="hidden" id="updateId" />
+
                 <div class="form-grid">
                     <div class="form-group full">
                         <label for="updateTitle">Tên sản phẩm / Model</label>
                         <input type="text" id="updateTitle" placeholder="Ví dụ: iPhone 15 Pro Max 256GB" />
                     </div>
+
                     <div class="form-group full">
                         <label for="updateDescription">Mô tả cấu hình & bảo hành</label>
                         <textarea id="updateDescription" placeholder="Nhập chi tiết thông số kỹ thuật..."></textarea>
                     </div>
+
+                    <div class="form-group full">
+                        <label for="updateQuantity">Số lượng tồn kho</label>
+                        <input type="number" id="updateQuantity" min="0" placeholder="Nhập số lượng tồn kho" />
+                    </div>
+
                     <div class="form-group full">
                         <label class="toggle-field">
                             <input type="checkbox" id="updatePublished" />
@@ -146,6 +162,7 @@
                         </label>
                     </div>
                 </div>
+
                 <div class="form-actions">
                     <button id="saveUpdate" class="primary-btn">Cập nhật ngay</button>
                     <button id="cancelUpdate" class="secondary-btn" type="button">Bỏ qua</button>
@@ -157,26 +174,24 @@
 
     <script>
         $(document).ready(function () {
-            // Modal popup logic
             function showModal() {
                 $("#updateModal").fadeIn(120);
                 $("body").css("overflow", "hidden");
             }
+
             function hideModal() {
                 $("#updateModal").fadeOut(120);
                 $("body").css("overflow", "auto");
             }
-            $(document).on("click", ".btnUpdate", function () {
-                // ...giữ nguyên code lấy dữ liệu...
-                showModal();
-            });
+
             $("#closeModal, #cancelUpdate").on("click", function () {
                 hideModal();
             });
+
             $("#updateModal").on("click", function (e) {
                 if (e.target === this) hideModal();
             });
-            // Xử lý Xoá sản phẩm
+
             $(".btnDelete").click(function () {
                 const id = $(this).attr("data-id");
 
@@ -185,7 +200,9 @@
                         url: `${window.location.origin}/api/tutorials/${id}`,
                         method: "DELETE",
                         success: () => {
-                            $(this).closest("tr").fadeOut(300, function () { $(this).remove(); });
+                            $(this).closest("tr").fadeOut(300, function () {
+                                $(this).remove();
+                            });
                         },
                         error: function (error) {
                             console.log("Lỗi xoá:", error);
@@ -195,27 +212,30 @@
                 }
             });
 
-            // Xử lý mở Form cập nhật (giữ nguyên logic lấy dữ liệu)
             $(document).on("click", ".btnUpdate", function () {
                 const id = $(this).attr("data-id");
                 const row = $(this).closest("tr");
                 const title = row.find(".tdTitle").text().trim();
                 const description = row.find(".tdDescription").text().trim();
+                const quantity = row.find(".tdQuantity").text().trim();
                 const published = row.find(".tdPublished").text().trim().includes("Đang kinh doanh");
+
                 $("#updateId").val(id);
                 $("#updateTitle").val(title);
                 $("#updateDescription").val(description);
+                $("#updateQuantity").val(quantity);
                 $("#updatePublished").prop("checked", published);
+
                 showModal();
             });
 
-            // Lưu thay đổi
             $("#saveUpdate").click(function () {
                 const id = $("#updateId").val();
 
                 const newData = {
                     title: $("#updateTitle").val(),
                     description: $("#updateDescription").val(),
+                    quantity: $("#updateQuantity").val(),
                     published: $("#updatePublished").is(":checked")
                 };
 
@@ -233,10 +253,6 @@
                         alert("Lỗi: Không thể lưu thông tin sản phẩm.");
                     }
                 });
-            });
-
-            $("#cancelUpdate").click(function () {
-                $("#updateForm").fadeOut(150);
             });
         });
     </script>

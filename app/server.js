@@ -33,6 +33,7 @@ const Op = db.Sequelize.Op;
 const Tutorial = db.tutorials;
 const Announcement = db.announcements;
 const Sequelize = db.Sequelize;
+const PasswordResetRequest = db.passwordResetRequests;
 const cartRouter = require("./routes/cart.router");
 const announcementRouter = require("./routes/announcement.router");
 
@@ -145,6 +146,67 @@ app.get("/login", (req, res) => {
   });
 });
 
+app.get("/forgot-password", (req, res) => {
+  renderView(res, "forgotPassword.ejs", {
+    error: "",
+    success: "",
+  });
+});
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { tk, email } = req.body;
+
+    if (!tk || !email) {
+      return renderView(res, "forgotPassword.ejs", {
+        error: "Vui lòng nhập đầy đủ tài khoản và email",
+        success: "",
+      });
+    }
+
+    const user = await User.findOne({
+      where: {
+        tk: tk.trim(),
+        email: email.trim(),
+      },
+    });
+
+    if (!user) {
+      return renderView(res, "forgotPassword.ejs", {
+        error: "Tài khoản và email không khớp",
+        success: "",
+      });
+    }
+
+    const existedPending = await PasswordResetRequest.findOne({
+      where: {
+        userId: user.id,
+        status: "pending",
+      },
+    });
+
+    if (existedPending) {
+      return renderView(res, "forgotPassword.ejs", {
+        error: "Bạn đã gửi yêu cầu trước đó, vui lòng chờ admin xử lý",
+        success: "",
+      });
+    }
+
+    await PasswordResetRequest.create({
+      userId: user.id,
+      tk: user.tk,
+      email: user.email,
+      status: "pending",
+    });
+
+    return renderView(res, "forgotPassword.ejs", {
+      error: "",
+      success: "Đã gửi yêu cầu mật khẩu mới. Vui lòng chờ admin xử lý.",
+    });
+  } catch (error) {
+    console.log("Forgot password error:", error);
+    return res.status(500).send("Lỗi xử lý quên mật khẩu");
+  }
+});
 app.post("/login", async (req, res) => {
   try {
     const { tk, mk } = req.body;

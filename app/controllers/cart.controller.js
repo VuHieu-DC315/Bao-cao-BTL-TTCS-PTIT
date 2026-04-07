@@ -3,6 +3,11 @@ const Cart = db.carts;
 const CartItem = db.cartItems;
 const Tutorial = db.tutorials;
 
+function parsePositiveInt(value, defaultValue = 1) {
+  const parsed = parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
+}
+
 module.exports = {
   addToCart: async (req, res) => {
     try {
@@ -14,8 +19,11 @@ module.exports = {
         return res.status(404).send("Sản phẩm không tồn tại");
       }
 
-      let cart = await Cart.findOne({ where: { userId } });
+      if (!tutorial.published || tutorial.quantity <= 0) {
+        return res.status(400).send("Sản phẩm đã hết hàng hoặc ngừng bán");
+      }
 
+      let cart = await Cart.findOne({ where: { userId } });
       if (!cart) {
         cart = await Cart.create({ userId });
       }
@@ -23,17 +31,23 @@ module.exports = {
       let item = await CartItem.findOne({
         where: {
           cartId: cart.id,
-          tutorialId: tutorialId,
+          tutorialId,
         },
       });
 
       if (item) {
-        item.quantity = item.quantity + 1;
+        if (item.quantity + 1 > tutorial.quantity) {
+          return res
+            .status(400)
+            .send("Số lượng trong giỏ đã đạt tối đa tồn kho");
+        }
+
+        item.quantity += 1;
         await item.save();
       } else {
         await CartItem.create({
           cartId: cart.id,
-          tutorialId: tutorialId,
+          tutorialId,
           quantity: 1,
         });
       }
@@ -49,7 +63,7 @@ module.exports = {
     try {
       const userId = req.session.user.id;
 
-      let cart = await Cart.findOne({
+      const cart = await Cart.findOne({
         where: { userId },
         include: [
           {
@@ -92,20 +106,30 @@ module.exports = {
   updateQuantity: async (req, res) => {
     try {
       const itemId = req.body.itemId;
-      const quantity = parseInt(req.body.quantity);
+      const quantity = parsePositiveInt(req.body.quantity, 1);
 
-      let item = await CartItem.findByPk(itemId);
-
+      const item = await CartItem.findByPk(itemId);
       if (!item) {
-        return res.send("Không tìm thấy sản phẩm trong giỏ");
+        return res.status(404).send("Không tìm thấy sản phẩm trong giỏ");
       }
 
-      if (quantity <= 0) {
+      const tutorial = await Tutorial.findByPk(item.tutorialId);
+      if (!tutorial) {
         await item.destroy();
-      } else {
-        item.quantity = quantity;
-        await item.save();
+        return res.status(404).send("Sản phẩm không còn tồn tại");
       }
+
+      if (!tutorial.published || tutorial.quantity <= 0) {
+        await item.destroy();
+        return res.status(400).send("Sản phẩm đã hết hàng hoặc ngừng bán");
+      }
+
+      if (quantity > tutorial.quantity) {
+        return res.status(400).send("Số lượng cập nhật vượt quá tồn kho");
+      }
+
+      item.quantity = quantity;
+      await item.save();
 
       return res.redirect("/cart");
     } catch (error) {
@@ -118,8 +142,7 @@ module.exports = {
     try {
       const itemId = req.body.itemId;
 
-      let item = await CartItem.findByPk(itemId);
-
+      const item = await CartItem.findByPk(itemId);
       if (item) {
         await item.destroy();
       }
@@ -132,18 +155,20 @@ module.exports = {
   },
 
   checkoutCart: async (req, res) => {
+    const transaction = await db.sequelize.transaction();
+
     try {
       const userId = req.session.user.id;
       const { email, phone } = req.body;
 
       if (!email || !phone) {
+        await transaction.rollback();
         return res.status(400).json({
           message: "Vui lòng nhập email và số điện thoại",
         });
       }
 
-      // Lấy giỏ hàng của user, kèm theo các item và thông tin sản phẩm
-      let cart = await Cart.findOne({
+      const cart = await Cart.findOne({
         where: { userId },
         include: [
           {
@@ -152,45 +177,84 @@ module.exports = {
             include: [{ model: Tutorial, as: "tutorial" }],
           },
         ],
+        transaction,
       });
 
-      if (!cart) {
+      if (!cart || !cart.items || cart.items.length === 0) {
+        await transaction.rollback();
         return res.status(400).json({
           message: "Giỏ hàng trống",
         });
       }
 
-      const cartItems = cart.items || [];
-
-      if (cartItems.length === 0) {
-        return res.status(400).json({
-          message: "Giỏ hàng trống",
+      for (const item of cart.items) {
+        const tutorial = await Tutorial.findByPk(item.tutorialId, {
+          transaction,
         });
+
+        if (!tutorial) {
+          await transaction.rollback();
+          return res.status(400).json({
+            message: `Sản phẩm trong giỏ không còn tồn tại (ID: ${item.tutorialId})`,
+          });
+        }
+
+        if (!tutorial.published || tutorial.quantity <= 0) {
+          await transaction.rollback();
+          return res.status(400).json({
+            message: `${tutorial.title} đã hết hàng hoặc ngừng bán`,
+          });
+        }
+
+        if (item.quantity > tutorial.quantity) {
+          await transaction.rollback();
+          return res.status(400).json({
+            message: `${tutorial.title} không đủ tồn kho`,
+          });
+        }
       }
 
-      for (const item of cartItems) {
-        await db.orders.create({
-          tutorialId: item.tutorial.id,
-          userId: req.session.user.id,
-          title: item.tutorial.title,
-          quantity: item.quantity,
-          email,
-          phone,
-          price: item.tutorial.price,
-          status: "pending",
+      for (const item of cart.items) {
+        const tutorial = await Tutorial.findByPk(item.tutorialId, {
+          transaction,
         });
+
+        await db.orders.create(
+          {
+            tutorialId: tutorial.id,
+            userId,
+            title: tutorial.title,
+            quantity: item.quantity,
+            email,
+            phone,
+            price: tutorial.price,
+            status: "pending",
+          },
+          { transaction },
+        );
+
+        tutorial.quantity = tutorial.quantity - item.quantity;
+        if (tutorial.quantity <= 0) {
+          tutorial.quantity = 0;
+          tutorial.published = false;
+        }
+        await tutorial.save({ transaction });
       }
 
       await CartItem.destroy({
         where: {
           cartId: cart.id,
         },
+        transaction,
       });
+
+      await transaction.commit();
 
       return res.json({
         message: "Thanh toán thành công",
       });
     } catch (error) {
+      await transaction.rollback();
       console.log(error);
       return res.status(500).json({
         message: "Lỗi thanh toán giỏ hàng",

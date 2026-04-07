@@ -58,13 +58,13 @@
                         phone: phone
                     }),
                     success: function (result) {
-                        alert("Buy success!");
+                        alert(result?.message || "Mua hàng thành công!");
                         console.log(result);
                         $("#buyModal").hide();
                     },
                     error: function (error) {
                         console.log(">>> buy error:", error);
-                        alert("Buy failed!");
+                        alert(error?.responseJSON?.message || "Mua hàng thất bại!");
                     }
                 });
             });
@@ -110,6 +110,11 @@
     </header>
 
     <main class="page">
+        <%
+            const isOutOfStock = Number(tutorial.quantity || 0) <= 0;
+            const canBuy = tutorial.published && !isOutOfStock;
+        %>
+
         <div class="product-detail-card">
             <div class="product-image-col">
                 <img src="/image/<%= tutorial.id %>.jpg" alt="tutorial image" class="product-img">
@@ -127,14 +132,14 @@
                     <%= tutorial.price ? tutorial.price + 'đ' : 'Liên hệ' %>
                 </div>
 
-                <div class="product-status <%= tutorial.published ? '' : 'unavailable' %>">
-                    Trạng thái: <%= tutorial.published ? 'Đang bán' : 'Ngừng bán' %>
+                <div class="product-status <%= canBuy ? '' : 'unavailable' %>">
+                    Trạng thái: <%= isOutOfStock ? 'Hết hàng' : (tutorial.published ? 'Đang bán' : 'Ngừng bán') %>
                 </div>
 
                 <div class="action-buttons">
                     <form action="/cart/items" method="POST" class="cart-form">
                         <input type="hidden" name="tutorialId" value="<%= tutorial.id %>">
-                        <button type="submit" class="btn btn-outline" <%=tutorial.published ? "" : "disabled" %>>
+                        <button type="submit" class="btn btn-outline" <%= canBuy ? "" : "disabled" %>>
                             Thêm vào giỏ
                         </button>
                     </form>
@@ -142,9 +147,9 @@
                     <button class="btn btn-primary btnBuy" 
                         data-id="<%= tutorial.id %>" 
                         data-title="<%= tutorial.title %>"
-                        data-published="<%= tutorial.published %>" 
-                        <%=tutorial.published ? "" : "disabled" %>>
-                        Mua ngay
+                        data-published="<%= canBuy ? 'true' : 'false' %>" 
+                        <%= canBuy ? "" : "disabled" %>>
+                        <%= canBuy ? 'Mua ngay' : (isOutOfStock ? 'Hết hàng' : 'Ngừng bán') %>
                     </button>
 
                     <button
@@ -156,7 +161,7 @@
                         data-product-description="<%= tutorial.description %>"
                         data-product-price="<%= tutorial.price || 0 %>"
                         data-product-image="/image/<%= tutorial.id %>.jpg"
-                        data-product-published="<%= tutorial.published ? 'true' : 'false' %>"
+                        data-product-published="<%= canBuy ? 'true' : 'false' %>"
                         data-product-link="/products/<%= tutorial.id %>">
                         <span data-wishlist-icon>♡</span>
                         <span data-wishlist-text>Yêu thích</span>

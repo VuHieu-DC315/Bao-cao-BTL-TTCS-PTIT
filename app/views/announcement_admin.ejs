@@ -63,16 +63,26 @@
       <h3>Danh sách thông báo</h3>
 
       <% if (announcements && announcements.length > 0) { %>
-        <% announcements.forEach(function(item) { %>
-          <div class="announcement-item">
-            <h4><%= item.title %></h4>
-            <p><%= item.content %></p>
-            <p><strong>Bắt đầu:</strong> <%= item.startDate ? item.startDate : "Không có" %></p>
-            <p><strong>Kết thúc:</strong> <%= item.endDate ? item.endDate : "Không có" %></p>
-            <p><strong>Vô thời hạn:</strong> <%= item.isPermanent ? "Có" : "Không" %></p>
-          </div>
-        <% }) %>
-      <% } else { %>
+  <% announcements.forEach(function(item) { %>
+    <div class="announcement-item">
+      <h4><%= item.title %></h4>
+      <p><%= item.content %></p>
+      <p><strong>Bắt đầu:</strong> <%= item.startDate ? item.startDate : "Không có" %></p>
+      <p><strong>Kết thúc:</strong> <%= item.endDate ? item.endDate : "Không có" %></p>
+      <p><strong>Vô thời hạn:</strong> <%= item.isPermanent ? "Có" : "Không" %></p>
+
+      <div class="announcement-actions">
+        <form
+          method="POST"
+          action="/announcements/admin/announcements/<%= item.id %>/delete"
+          onsubmit="return confirm('Bạn có chắc muốn xóa thông báo này không?');"
+        >
+          <button type="submit" class="delete-btn">Xóa thông báo</button>
+        </form>
+      </div>
+    </div>
+  <% }) %>
+<% } else { %>
         <p class="empty-msg">Chưa có thông báo nào.</p>
       <% } %>
 

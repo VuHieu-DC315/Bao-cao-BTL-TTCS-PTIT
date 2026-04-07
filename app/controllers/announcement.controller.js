@@ -10,7 +10,7 @@ module.exports = {
       }
 
       const announcements = await Announcement.findAll({
-        order: [["createdAt", "DESC"]]
+        order: [["createdAt", "DESC"]],
       });
 
       return res.render("announcement_admin.ejs", { announcements });
@@ -23,7 +23,9 @@ module.exports = {
   create: async (req, res) => {
     try {
       if (!req.session.user || req.session.user.role !== "admin") {
-        return res.status(403).send("Bạn không có quyền thực hiện chức năng này");
+        return res
+          .status(403)
+          .send("Bạn không có quyền thực hiện chức năng này");
       }
 
       const { title, content, startDate, endDate, isPermanent } = req.body;
@@ -33,13 +35,37 @@ module.exports = {
         content,
         startDate: startDate || null,
         endDate: endDate || null,
-        isPermanent: isPermanent === "on"
+        isPermanent: isPermanent === "on",
       });
 
       return res.redirect("/announcements/admin/announcements");
     } catch (error) {
       console.log("create announcement error =", error);
       return res.status(500).send("Lỗi khi tạo thông báo");
+    }
+  },
+  delete: async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .send("Bạn không có quyền thực hiện chức năng này");
+      }
+
+      const id = req.params.id;
+
+      const deletedRows = await Announcement.destroy({
+        where: { id: id },
+      });
+
+      if (deletedRows === 0) {
+        return res.status(404).send("Không tìm thấy thông báo để xóa");
+      }
+
+      return res.redirect("/announcements/admin/announcements");
+    } catch (error) {
+      console.log("delete announcement error =", error);
+      return res.status(500).send("Lỗi khi xóa thông báo");
     }
   },
   getAllPublic: async (req, res) => {
@@ -55,20 +81,17 @@ module.exports = {
                 {
                   [Op.or]: [
                     { startDate: null },
-                    { startDate: { [Op.lte]: now } }
-                  ]
+                    { startDate: { [Op.lte]: now } },
+                  ],
                 },
                 {
-                  [Op.or]: [
-                    { endDate: null },
-                    { endDate: { [Op.gte]: now } }
-                  ]
-                }
-              ]
-            }
-          ]
+                  [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: now } }],
+                },
+              ],
+            },
+          ],
         },
-        order: [["createdAt", "DESC"]]
+        order: [["createdAt", "DESC"]],
       });
 
       const formatVN = (date) => {
@@ -80,14 +103,14 @@ module.exports = {
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit"
+          second: "2-digit",
         }).format(new Date(date));
       };
 
-      const result = announcements.map(item => ({
+      const result = announcements.map((item) => ({
         ...item.toJSON(),
         startDateVN: item.startDate ? formatVN(item.startDate) : null,
-        endDateVN: item.endDate ? formatVN(item.endDate) : null
+        endDateVN: item.endDate ? formatVN(item.endDate) : null,
       }));
 
       return res.render("announcements.ejs", { announcements: result });
@@ -95,5 +118,5 @@ module.exports = {
       console.log("getAllPublic error =", error);
       return res.status(500).send("Lỗi tải danh sách thông báo");
     }
-  }
+  },
 };

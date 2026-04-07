@@ -32,6 +32,10 @@ db.users = require("./user.model.js")(sequelize, Sequelize);
 db.announcements = require("./announcement.model.js")(sequelize, Sequelize);
 db.carts = require("./cart.model.js")(sequelize, Sequelize);
 db.cartItems = require("./cartItem.model.js")(sequelize, Sequelize);
+db.passwordResetRequests = require("./passwordResetRequest.model.js")(
+  sequelize,
+  Sequelize,
+);
 
 // ===== RELATIONS (FIX ALIAS) =====
 db.users.hasOne(db.carts, { foreignKey: "userId" });

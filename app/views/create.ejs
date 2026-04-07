@@ -1,67 +1,91 @@
 <!DOCTYPE html>
 <html lang="vi">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Tutorial</title>
     <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
     <link rel="stylesheet" href="/css/create.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
+  <body>
     <header class="topbar">
-        <div class="topbar-container">
-            <a href="/" class="brand-logo" aria-label="Trang chủ">
-                <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
-                <div class="brand-logo-text single">
-                    <span class="brand-main">PShop</span>
-                    <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
-                </div>
-            </a>
-        </div>
+      <div class="topbar-container">
+        <a href="/" class="brand-logo" aria-label="Trang chủ">
+          <img
+            src="/image/Shop_logo.jpg"
+            alt="Shop Logo"
+            class="brand-logo-img"
+          />
+          <div class="brand-logo-text single">
+            <span class="brand-main">PShop</span>
+            <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
+          </div>
+        </a>
+      </div>
     </header>
 
     <main class="page">
-        <div class="create-container">
-            <form method="POST" action="/admin/products">
-                <fieldset>
-                    <legend>Tạo sản phẩm mới</legend>
-                    
-                    <div class="form-group">
-                        <label>Tên sản phẩm (Title)</label>
-                        <input type="text" name="title" required />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Mô tả (Description)</label>
-                        <input type="text" name="description" required />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Giá (Price)</label>
-                        <input type="number" name="price" min="0" required />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Trạng thái (Published)</label>
-                        <select name="published">
-                            <option value="true">Đang bán</option>
-                            <option value="false">Chưa bán</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn-submit">Lưu sản phẩm</button>
-                    
-                    <a href="/admin/products" class="back-link">Quay lại danh sách</a>
-                </fieldset>
-            </form>
-        </div>
-    </main>
-</body>
+      <div class="create-container">
+        <form
+          method="POST"
+          action="/admin/products"
+          enctype="multipart/form-data"
+        >
+          <fieldset>
+            <legend>Tạo sản phẩm mới</legend>
 
+            <div class="form-group">
+              <label>Tên sản phẩm (Title)</label>
+              <input type="text" name="title" required />
+            </div>
+
+            <div class="form-group">
+              <label>Mô tả (Description)</label>
+              <input type="text" name="description" required />
+            </div>
+
+            <div class="form-group">
+              <label>Giá (Price)</label>
+              <input type="number" name="price" min="0" required />
+            </div>
+
+            <div class="form-group">
+              <label>Số lượng tồn kho</label>
+              <input type="number" name="quantity" min="0" required />
+            </div>
+
+            <div class="form-group">
+              <label>Trạng thái (Published)</label>
+              <select name="published">
+                <option value="true">Đang bán</option>
+                <option value="false">Chưa bán</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Ảnh sản phẩm (chỉ JPG/JPEG)</label>
+              <input
+                type="file"
+                name="image"
+                accept=".jpg,.jpeg,image/jpeg"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-submit">Lưu sản phẩm</button>
+
+            <a href="/admin/products" class="back-link">Quay lại danh sách</a>
+          </fieldset>
+        </form>
+      </div>
+    </main>
+  </body>
 </html>
