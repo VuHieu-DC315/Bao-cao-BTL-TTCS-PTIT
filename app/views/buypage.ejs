@@ -1,3 +1,7 @@
+<%
+    const currentUserEmail = user && user.email ? user.email : '';
+    const voucherOptions = Array.isArray(availableVouchers) ? availableVouchers : [];
+%>
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -30,7 +34,7 @@
                 $("#buyTitle").val(title);
                 $("#buyQuantity").val(1);
                 $("#buyQuantity").attr("max", maxStock);
-                $("#buyEmail").val("<%= user?.email || '' %>");
+                $("#buyEmail").val("<%= currentUserEmail %>");
                 $("#buyPhone").val("");
                 $("#buyVoucherCode").val("");
 
@@ -79,7 +83,7 @@
                         voucherCode: voucherCode
                     }),
                     success: function (result) {
-                        alert(result?.message || "Mua hàng thành công!");
+                        alert(result && result.message ? result.message : "Mua hàng thành công!");
                         $("#buyModal").hide();
                         $("body").css("overflow", "auto");
                         $("#buyQuantity").val(1);
@@ -88,7 +92,13 @@
                     },
                     error: function (error) {
                         console.log(">>> buy error:", error);
-                        alert(error?.responseJSON?.message || "Mua hàng thất bại!");
+                        alert(
+                            error &&
+                            error.responseJSON &&
+                            error.responseJSON.message
+                                ? error.responseJSON.message
+                                : "Mua hàng thất bại!"
+                        );
                     },
                     complete: function () {
                         $("#confirmBuy").prop("disabled", false).text("Xác nhận");
@@ -236,8 +246,8 @@
                         <select id="buyVoucherCode">
                             <option value="">-- Không dùng voucher --</option>
 
-                            <% if (availableVouchers && availableVouchers.length > 0) { %>
-                                <% availableVouchers.forEach(function(voucher) { %>
+                            <% if (voucherOptions.length > 0) { %>
+                                <% voucherOptions.forEach(function(voucher) { %>
                                     <option value="<%= voucher.code %>">
                                         <%= voucher.code %> - <%= voucher.name %>
                                         (
@@ -250,7 +260,7 @@
                             <% } %>
                         </select>
 
-                        <% if (!availableVouchers || availableVouchers.length === 0) { %>
+                        <% if (voucherOptions.length === 0) { %>
                             <small class="voucher-note">Hiện chưa có voucher phù hợp cho sản phẩm này</small>
                         <% } %>
                     <% } else { %>
@@ -301,11 +311,15 @@
             }
 
             function getItems() {
-                return readItems().map(normalizeItem).filter(item => item.id);
+                return readItems().map(normalizeItem).filter(function (item) {
+                    return item.id;
+                });
             }
 
             function hasItem(productId) {
-                return getItems().some(item => item.id === String(productId));
+                return getItems().some(function (item) {
+                    return item.id === String(productId);
+                });
             }
 
             function addItem(item) {
@@ -313,7 +327,7 @@
                 if (!nextItem.id) return getItems();
 
                 const items = getItems();
-                if (!items.some(entry => entry.id === nextItem.id)) {
+                if (!items.some(function (entry) { return entry.id === nextItem.id; })) {
                     items.unshift(nextItem);
                     saveItems(items);
                 }
@@ -321,7 +335,9 @@
             }
 
             function removeItem(productId) {
-                const nextItems = getItems().filter(item => item.id !== String(productId));
+                const nextItems = getItems().filter(function (item) {
+                    return item.id !== String(productId);
+                });
                 saveItems(nextItems);
                 return nextItems;
             }
@@ -359,7 +375,7 @@
             }
 
             function syncButtons() {
-                document.querySelectorAll('[data-wishlist-button]').forEach((button) => {
+                document.querySelectorAll('[data-wishlist-button]').forEach(function (button) {
                     const productId = button.dataset.productId;
                     const active = hasItem(productId);
                     button.classList.toggle('is-active', active);
@@ -376,13 +392,14 @@
 
             function syncCounters() {
                 const total = getItems().length;
-                document.querySelectorAll('[data-wishlist-count]').forEach((node) => {
+                document.querySelectorAll('[data-wishlist-count]').forEach(function (node) {
                     node.textContent = String(total);
                 });
             }
 
             function renderCompactItems(items) {
-                return items.map((item) => `
+                return items.map(function (item) {
+                    return `
                     <article class="wishlist-mini-card">
                         <a href="${escapeHtml(item.link)}" class="wishlist-mini-thumb">
                             <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
@@ -408,17 +425,18 @@
                             ×
                         </button>
                     </article>
-                `).join('');
+                `;
+                }).join('');
             }
 
             function renderSections() {
                 const items = getItems();
 
-                document.querySelectorAll('[data-wishlist-section]').forEach((section) => {
+                document.querySelectorAll('[data-wishlist-section]').forEach(function (section) {
                     const variant = section.dataset.wishlistVariant || 'compact';
                     const emptyText = section.dataset.emptyText || 'Chưa có sản phẩm nào.';
                     if (!items.length) {
-                        section.innerHTML = `<div class="wishlist-empty">${escapeHtml(emptyText)}</div>`;
+                        section.innerHTML = '<div class="wishlist-empty">' + escapeHtml(emptyText) + '</div>';
                         return;
                     }
 
