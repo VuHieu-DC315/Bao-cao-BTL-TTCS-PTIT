@@ -220,15 +220,9 @@
                                 </span>
 
                                 <% if (canBuy) { %>
-    <% if (user) { %>
-        <a href="/products/<%= item.id %>" class="buy-product-btn">
-            Mua
-        </a>
-    <% } else { %>
-        <a href="/login?error=<%= encodeURIComponent('Bạn cần đăng nhập để mua hàng') %>" class="buy-product-btn">
-            Mua
-        </a>
-    <% } %>
+    <a href="/products/<%= item.id %>" class="buy-product-btn">
+        Mua
+    </a>
 <% } else { %>
     <span class="buy-product-btn disabled">
         <%= isOutOfStock ? 'Hết hàng' : 'Ngừng bán' %>

@@ -1,0 +1,207 @@
+<%
+  const item = typeof voucher !== 'undefined' && voucher ? voucher : {};
+  const tutorialList = Array.isArray(tutorials) ? tutorials : [];
+  const actionUrl =
+    typeof formAction !== 'undefined' && formAction
+      ? formAction
+      : (item.id ? `/admin/vouchers/${item.id}` : '/admin/vouchers');
+
+  function toDateTimeLocal(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const offset = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  }
+
+  const isActiveValue =
+    typeof item.isActive !== 'undefined'
+      ? item.isActive
+      : (typeof item.active !== 'undefined' ? item.active : true);
+%>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= item.id ? 'Sửa voucher' : 'Thêm voucher' %></title>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/editVoucher.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-container">
+      <a href="/admin" class="brand-logo" aria-label="Trang quản trị">
+        <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img">
+        <div class="brand-logo-text">
+          <span class="brand-main">PShop Admin</span>
+          <span class="brand-sub">Quản lý voucher hệ thống</span>
+        </div>
+      </a>
+
+      <div class="topbar-actions">
+        <a href="/admin/vouchers" class="back-btn">Quay lại danh sách voucher</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <nav class="breadcrumb" aria-label="Điều hướng">
+      <a href="/admin">Admin</a>
+      <span>/</span>
+      <a href="/admin/vouchers">Voucher</a>
+      <span>/</span>
+      <span><%= item.id ? 'Sửa voucher' : 'Thêm voucher' %></span>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <p class="hero-tag"><%= item.id ? 'CHỈNH SỬA VOUCHER' : 'TẠO VOUCHER MỚI' %></p>
+        <h1><%= item.id ? 'Cập nhật thông tin voucher' : 'Tạo voucher khuyến mãi' %></h1>
+        <p class="hero-desc">
+          Thiết lập mã giảm giá, thời gian áp dụng, phạm vi áp dụng và trạng thái hoạt động một cách rõ ràng.
+        </p>
+      </div>
+    </section>
+
+    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+      <div class="alert alert-danger"><%= errorMessage %></div>
+    <% } %>
+
+    <section class="form-card">
+      <div class="card-head">
+        <div>
+          <h2><%= item.id ? 'Sửa voucher' : 'Thêm voucher' %></h2>
+          <p>Điền đầy đủ thông tin để hệ thống lưu voucher chính xác.</p>
+        </div>
+      </div>
+
+      <form action="<%= actionUrl %>" method="POST" class="voucher-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="code">Code</label>
+            <input type="text" id="code" name="code" value="<%= item.code || '' %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="name">Tên voucher</label>
+            <input type="text" id="name" name="name" value="<%= item.name || '' %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="discountType">Loại giảm</label>
+            <select id="discountType" name="discountType" required>
+              <option value="percent" <%= item.discountType === 'percent' ? 'selected' : '' %>>Phần trăm</option>
+              <option value="fixed" <%= item.discountType === 'fixed' ? 'selected' : '' %>>Tiền cố định</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="discountValue">Giá trị giảm</label>
+            <input type="number" id="discountValue" name="discountValue" min="0" step="1" value="<%= typeof item.discountValue !== 'undefined' ? item.discountValue : '' %>" required>
+          </div>
+
+          <div class="form-group" id="maxDiscountWrapper">
+            <label for="maxDiscount">Giảm tối đa</label>
+            <input type="number" id="maxDiscount" name="maxDiscount" min="0" step="1" value="<%= typeof item.maxDiscount !== 'undefined' && item.maxDiscount !== null ? item.maxDiscount : '' %>">
+            <small>Có thể để trống nếu loại giảm là tiền cố định.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="minOrderTotal">Đơn tối thiểu</label>
+            <input type="number" id="minOrderTotal" name="minOrderTotal" min="0" step="1" value="<%= typeof item.minOrderTotal !== 'undefined' && item.minOrderTotal !== null ? item.minOrderTotal : 0 %>">
+          </div>
+
+          <div class="form-group">
+            <label for="appliesTo">Đối tượng áp dụng</label>
+            <select id="appliesTo" name="appliesTo" required>
+              <option value="all" <%= item.appliesTo === 'all' ? 'selected' : '' %>>Toàn bộ sản phẩm</option>
+              <option value="product" <%= item.appliesTo === 'product' || item.appliesTo === 'tutorial' ? 'selected' : '' %>>Sản phẩm cụ thể</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="tutorialIdWrapper">
+            <label for="tutorialId">Sản phẩm áp dụng</label>
+            <select id="tutorialId" name="tutorialId">
+              <option value="">-- Chọn sản phẩm --</option>
+              <% tutorialList.forEach(function(tutorial) { %>
+                <option value="<%= tutorial.id %>" <%= Number(item.tutorialId) === Number(tutorial.id) ? 'selected' : '' %>>
+                  <%= tutorial.name || tutorial.title || ('Tutorial #' + tutorial.id) %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Số lượng</label>
+            <input type="number" id="quantity" name="quantity" min="0" step="1" value="<%= typeof item.quantity !== 'undefined' ? item.quantity : 0 %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="isActive">Trạng thái</label>
+            <select id="isActive" name="isActive">
+              <option value="true" <%= isActiveValue === true || isActiveValue === 1 || isActiveValue === 'true' || isActiveValue === '1' ? 'selected' : '' %>>Bật</option>
+              <option value="false" <%= isActiveValue === false || isActiveValue === 0 || isActiveValue === 'false' || isActiveValue === '0' ? 'selected' : '' %>>Tắt</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="startDate">Ngày bắt đầu</label>
+            <input type="datetime-local" id="startDate" name="startDate" value="<%= toDateTimeLocal(item.startDate) %>">
+          </div>
+
+          <div class="form-group">
+            <label for="endDate">Ngày kết thúc</label>
+            <input type="datetime-local" id="endDate" name="endDate" value="<%= toDateTimeLocal(item.endDate) %>">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <%= item.id ? 'Cập nhật voucher' : 'Tạo voucher' %>
+          </button>
+          <a href="/admin/vouchers" class="btn btn-secondary">Hủy</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    function toggleTutorialField() {
+      const appliesTo = document.getElementById('appliesTo').value;
+      const tutorialWrapper = document.getElementById('tutorialIdWrapper');
+      const tutorialId = document.getElementById('tutorialId');
+
+      if (appliesTo === 'all') {
+        tutorialWrapper.style.display = 'none';
+        tutorialId.value = '';
+      } else {
+        tutorialWrapper.style.display = 'block';
+      }
+    }
+
+    function toggleMaxDiscountField() {
+      const discountType = document.getElementById('discountType').value;
+      const maxDiscountWrapper = document.getElementById('maxDiscountWrapper');
+
+      if (discountType === 'fixed') {
+        maxDiscountWrapper.style.display = 'none';
+      } else {
+        maxDiscountWrapper.style.display = 'block';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      toggleTutorialField();
+      toggleMaxDiscountField();
+
+      document.getElementById('appliesTo').addEventListener('change', toggleTutorialField);
+      document.getElementById('discountType').addEventListener('change', toggleMaxDiscountField);
+    });
+  </script>
+</body>
+</html>

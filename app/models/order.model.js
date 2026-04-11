@@ -35,7 +35,27 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: "pending",
     },
+    originalAmount: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    voucherCode: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    voucherDiscount: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    finalAmount: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   });
 
   return Order;
 };
+

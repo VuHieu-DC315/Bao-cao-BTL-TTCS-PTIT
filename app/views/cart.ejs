@@ -15,23 +15,29 @@
     $(document).ready(function () {
       $("#btnBuyCart").click(function () {
         $("#buyTotal").val("<%= total %>");
-        $("#buyEmail").val("");
+        $("#buyEmail").val("<%= user?.email || '' %>");
         $("#buyPhone").val("");
-        $("#buyModal").show();
+        $("#buyVoucherCode").val("");
+        $("#buyModal").css("display", "block");
+        $("body").css("overflow", "hidden");
       });
 
       $("#closeBuyModal").click(function () {
         $("#buyModal").hide();
+        $("body").css("overflow", "auto");
       });
 
       $("#confirmBuy").click(function () {
-        const email = $("#buyEmail").val();
-        const phone = $("#buyPhone").val();
+        const email = $("#buyEmail").val().trim();
+        const phone = $("#buyPhone").val().trim();
+        const voucherCode = ($("#buyVoucherCode").val() || "").trim();
 
         if (!email || !phone) {
           alert("Vui lòng nhập email và số điện thoại");
           return;
         }
+
+        $("#confirmBuy").prop("disabled", true).text("Đang xử lý...");
 
         $.ajax({
           url: "/cart/checkout",
@@ -39,18 +45,31 @@
           contentType: "application/json",
           data: JSON.stringify({
             email: email,
-            phone: phone
+            phone: phone,
+            voucherCode: voucherCode
           }),
           success: function (result) {
             alert(result?.message || "Thanh toán thành công!");
             $("#buyModal").hide();
+            $("body").css("overflow", "auto");
+            $("#buyVoucherCode").val("");
             window.location.href = "/cart";
           },
           error: function (error) {
             console.log(error);
             alert(error?.responseJSON?.message || "Thanh toán thất bại!");
+          },
+          complete: function () {
+            $("#confirmBuy").prop("disabled", false).text("Xác nhận");
           }
         });
+      });
+
+      $(window).click(function (event) {
+        if ($(event.target).is("#buyModal")) {
+          $("#buyModal").hide();
+          $("body").css("overflow", "auto");
+        }
       });
     });
   </script>
@@ -70,11 +89,11 @@
 
   <main class="page">
     <div class="page-header">
-      <h2>Giỏ hàng của bạn</h2>
+      <h2>Giỏ hàng tạm thời của bạn</h2>
       <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-  <a href="/shop" class="back-link">← Quay lại mua hàng</a>
-  <a href="/my-orders" class="back-link">Đơn hàng của tôi</a>
-</div>
+        <a href="/shop" class="back-link">← Quay lại mua hàng</a>
+        <a href="/my-orders" class="back-link">Đơn hàng của tôi</a>
+      </div>
     </div>
 
     <div class="cart-container">
@@ -98,15 +117,21 @@
                 <td><%= item.tutorial.price %></td>
                 <td>
                   <form action="/cart/items/update" method="POST" class="qty-form">
-                    <input type="hidden" name="itemId" value="<%= item.id %>">
-                    <input type="number" name="quantity" class="qty-input" value="<%= item.quantity %>" min="1">
+                    <input type="hidden" name="itemId" value="<%= item.tutorialId %>">
+                    <input
+                      type="number"
+                      name="quantity"
+                      class="qty-input"
+                      value="<%= item.quantity %>"
+                      min="1"
+                      max="<%= item.tutorial.quantity %>">
                     <button type="submit" class="btn-update">Cập nhật</button>
                   </form>
                 </td>
                 <td class="line-total-cell"><%= item.quantity * item.tutorial.price %></td>
                 <td>
                   <form action="/cart/items/delete" method="POST" class="delete-form">
-                    <input type="hidden" name="itemId" value="<%= item.id %>">
+                    <input type="hidden" name="itemId" value="<%= item.tutorialId %>">
                     <button type="submit" class="btn-delete">Xóa</button>
                   </form>
                 </td>
@@ -142,9 +167,41 @@
         <input type="text" id="buyPhone" placeholder="Nhập số điện thoại">
       </div>
 
+      <div class="form-group">
+        <label>Mã voucher:</label>
+
+        <% if (user) { %>
+          <select id="buyVoucherCode">
+            <option value="">-- Không dùng voucher --</option>
+
+            <% if (availableVouchers && availableVouchers.length > 0) { %>
+              <% availableVouchers.forEach(function(voucher) { %>
+                <option value="<%= voucher.code %>">
+                  <%= voucher.code %> - <%= voucher.name %>
+                  (
+                  <%= voucher.discountType === 'percent'
+                    ? voucher.discountValue + '%'
+                    : Number(voucher.discountValue || 0).toLocaleString('vi-VN') + 'đ' %>
+                  )
+                </option>
+              <% }) %>
+            <% } %>
+          </select>
+
+          <% if (!availableVouchers || availableVouchers.length === 0) { %>
+            <small class="voucher-note">Hiện chưa có voucher phù hợp cho giỏ hàng này</small>
+          <% } %>
+        <% } else { %>
+          <select id="buyVoucherCode" disabled>
+            <option value="">Đăng nhập để chọn voucher</option>
+          </select>
+          <small class="voucher-note">Chỉ user đã đăng nhập mới dùng được voucher</small>
+        <% } %>
+      </div>
+
       <div class="modal-actions">
-        <button id="closeBuyModal">Hủy</button>
-        <button id="confirmBuy">Xác nhận</button>
+        <button id="closeBuyModal" type="button">Hủy</button>
+        <button id="confirmBuy" type="button">Xác nhận</button>
       </div>
     </div>
   </div>

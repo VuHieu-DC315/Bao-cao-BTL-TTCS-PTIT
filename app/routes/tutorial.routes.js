@@ -34,11 +34,18 @@ const upload = multer({
 module.exports = (app) => {
   const router = require("express").Router();
 
-  // Admin product pages
-  router.get("/", getAll);
-  router.get("/new", getCreate);
+  function checkAdmin(req, res, next) {
+    if (!req.session.user || req.session.user.role !== "admin") {
+      return res.status(403).send("Bạn không có quyền vào trang admin");
+    }
+    next();
+  }
+
+  router.get("/", checkAdmin, getAll);
+  router.get("/new", checkAdmin, getCreate);
   router.post(
     "/",
+    checkAdmin,
     (req, res, next) => {
       upload.single("image")(req, res, function (err) {
         if (err) {
@@ -49,23 +56,18 @@ module.exports = (app) => {
     },
     create,
   );
-  router.get("/:id", findOne);
-  router.put("/:id", update);
+  router.get("/:id", checkAdmin, findOne);
+  router.put("/:id", checkAdmin, update);
 
   app.use("/admin/products", router);
 
-  // Public shop pages
   app.get("/shop", getHomesalePage);
   app.get("/products/:id", getBuyPage);
-
-  // Create order from buy page
   app.post("/orders", buyTutorial);
 
-  // Admin orders page
   app.get("/admin/orders", getAllOrders);
   app.post("/admin/orders/:id/status", updateOrderStatus);
   app.get("/admin/revenue", getRevenuePage);
 
-  // User orders page
   app.get("/my-orders", getMyOrders);
 };

@@ -541,7 +541,7 @@
     </script>
 
     <script>
-        const isLoggedIn = document.body.dataset.loggedIn === "true";
+        
 
         function openAnnouncementModal(title, content, meta) {
             $("#announcementModalTitle").text(title || "Thông báo");
@@ -559,13 +559,6 @@
         $(document).ready(function () {
             $(".btnBuy").on("click", function () {
                 const id = $(this).attr("data-id");
-
-                if (!isLoggedIn) {
-                    window.location.href =
-                        "/login?error=" + encodeURIComponent("Bạn cần đăng nhập để mua hàng");
-                    return;
-                }
-
                 window.location.href = "/products/" + encodeURIComponent(id);
             });
 

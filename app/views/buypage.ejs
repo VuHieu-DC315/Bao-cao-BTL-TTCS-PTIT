@@ -14,37 +14,58 @@
 
     <script>
         $(document).ready(function () {
+            const maxStock = <%= Number(tutorial.quantity || 0) %>;
+
             $(".btnBuy").click(function () {
                 const id = $(this).attr("data-id");
                 const title = $(this).attr("data-title");
                 const published = $(this).attr("data-published");
 
                 if (published !== "true" && published !== "1") {
+                    alert("Sản phẩm này hiện không thể mua");
                     return;
                 }
 
                 $("#buyId").val(id);
                 $("#buyTitle").val(title);
                 $("#buyQuantity").val(1);
+                $("#buyQuantity").attr("max", maxStock);
+                $("#buyEmail").val("<%= user?.email || '' %>");
+                $("#buyPhone").val("");
+                $("#buyVoucherCode").val("");
 
-                $("#buyModal").show();
+                $("#buyModal").css("display", "block");
+                $("body").css("overflow", "hidden");
             });
 
             $("#closeBuyModal").click(function () {
                 $("#buyModal").hide();
+                $("body").css("overflow", "auto");
             });
 
             $("#confirmBuy").click(function () {
                 const tutorialId = $("#buyId").val();
-                const title = $("#buyTitle").val();
-                const quantity = $("#buyQuantity").val();
-                const email = $("#buyEmail").val();
-                const phone = $("#buyPhone").val();
+                const quantity = parseInt($("#buyQuantity").val(), 10);
+                const email = $("#buyEmail").val().trim();
+                const phone = $("#buyPhone").val().trim();
+                const voucherCode = ($("#buyVoucherCode").val() || "").trim();
 
                 if (!email || !phone) {
                     alert("Vui lòng nhập email và số điện thoại");
                     return;
                 }
+
+                if (!Number.isInteger(quantity) || quantity <= 0) {
+                    alert("Số lượng mua không hợp lệ");
+                    return;
+                }
+
+                if (quantity > maxStock) {
+                    alert("Số lượng mua vượt quá tồn kho");
+                    return;
+                }
+
+                $("#confirmBuy").prop("disabled", true).text("Đang xử lý...");
 
                 $.ajax({
                     url: "/orders",
@@ -52,21 +73,34 @@
                     contentType: "application/json",
                     data: JSON.stringify({
                         tutorialId: tutorialId,
-                        title: title,
                         quantity: quantity,
                         email: email,
-                        phone: phone
+                        phone: phone,
+                        voucherCode: voucherCode
                     }),
                     success: function (result) {
                         alert(result?.message || "Mua hàng thành công!");
-                        console.log(result);
                         $("#buyModal").hide();
+                        $("body").css("overflow", "auto");
+                        $("#buyQuantity").val(1);
+                        $("#buyVoucherCode").val("");
+                        window.location.reload();
                     },
                     error: function (error) {
                         console.log(">>> buy error:", error);
                         alert(error?.responseJSON?.message || "Mua hàng thất bại!");
+                    },
+                    complete: function () {
+                        $("#confirmBuy").prop("disabled", false).text("Xác nhận");
                     }
                 });
+            });
+
+            $(window).click(function (event) {
+                if ($(event.target).is("#buyModal")) {
+                    $("#buyModal").hide();
+                    $("body").css("overflow", "auto");
+                }
             });
         });
     </script>
@@ -98,10 +132,7 @@
                             <strong>Sản phẩm yêu thích</strong>
                         </div>
 
-                        <div
-                            class="wishlist-popup-list"
-                            data-wishlist-section
-                            data-wishlist-variant="compact"
+                        <div class="wishlist-popup-list" data-wishlist-section data-wishlist-variant="compact"
                             data-empty-text="Bạn chưa thêm sản phẩm nào vào mục yêu thích."></div>
                     </div>
                 </div>
@@ -110,22 +141,22 @@
     </header>
 
     <main class="page">
-        <%
-            const isOutOfStock = Number(tutorial.quantity || 0) <= 0;
-            const canBuy = tutorial.published && !isOutOfStock;
-        %>
+        <% const isOutOfStock = Number(tutorial.quantity || 0) <= 0; const canBuy = tutorial.published && !isOutOfStock; %>
 
         <div class="product-detail-card">
             <div class="product-image-col">
-                <img src="/image/<%= tutorial.id %>.jpg" alt="tutorial image" class="product-img">
+                <img src="/image/<%= tutorial.id %>.jpg" alt="tutorial image" class="product-img"
+                    onerror="this.src='/image/1.jpg'">
             </div>
 
             <div class="product-info-col">
                 <div class="product-id">Mã SP: #<%= tutorial.id %></div>
+
                 <h1 class="product-title"><%= tutorial.title %></h1>
 
                 <div class="product-desc">
-                    <strong>Mô tả:</strong> <%= tutorial.description %>
+                    <strong>Mô tả:</strong>
+                    <%= tutorial.description %>
                 </div>
 
                 <div class="product-price">
@@ -144,20 +175,14 @@
                         </button>
                     </form>
 
-                    <button class="btn btn-primary btnBuy" 
-                        data-id="<%= tutorial.id %>" 
-                        data-title="<%= tutorial.title %>"
-                        data-published="<%= canBuy ? 'true' : 'false' %>" 
+                    <button type="button" class="btn btn-primary btnBuy" data-id="<%= tutorial.id %>"
+                        data-title="<%= tutorial.title %>" data-published="<%= canBuy ? 'true' : 'false' %>"
                         <%= canBuy ? "" : "disabled" %>>
                         <%= canBuy ? 'Mua ngay' : (isOutOfStock ? 'Hết hàng' : 'Ngừng bán') %>
                     </button>
 
-                    <button
-                        type="button"
-                        class="btn btn-outline wishlist-detail-btn"
-                        data-wishlist-button
-                        data-product-id="<%= tutorial.id %>"
-                        data-product-title="<%= tutorial.title %>"
+                    <button type="button" class="btn btn-outline wishlist-detail-btn" data-wishlist-button
+                        data-product-id="<%= tutorial.id %>" data-product-title="<%= tutorial.title %>"
                         data-product-description="<%= tutorial.description %>"
                         data-product-price="<%= tutorial.price || 0 %>"
                         data-product-image="/image/<%= tutorial.id %>.jpg"
@@ -191,7 +216,7 @@
 
                 <div class="form-group">
                     <label>Số lượng:</label>
-                    <input type="number" id="buyQuantity" value="1" min="1">
+                    <input type="number" id="buyQuantity" value="1" min="1" max="<%= tutorial.quantity || 0 %>">
                 </div>
 
                 <div class="form-group">
@@ -204,9 +229,41 @@
                     <input type="text" id="buyPhone" placeholder="Nhập số điện thoại">
                 </div>
 
+                <div class="form-group">
+                    <label>Mã voucher:</label>
+
+                    <% if (user) { %>
+                        <select id="buyVoucherCode">
+                            <option value="">-- Không dùng voucher --</option>
+
+                            <% if (availableVouchers && availableVouchers.length > 0) { %>
+                                <% availableVouchers.forEach(function(voucher) { %>
+                                    <option value="<%= voucher.code %>">
+                                        <%= voucher.code %> - <%= voucher.name %>
+                                        (
+                                        <%= voucher.discountType === 'percent'
+                                            ? voucher.discountValue + '%'
+                                            : Number(voucher.discountValue || 0).toLocaleString('vi-VN') + 'đ' %>
+                                        )
+                                    </option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+
+                        <% if (!availableVouchers || availableVouchers.length === 0) { %>
+                            <small class="voucher-note">Hiện chưa có voucher phù hợp cho sản phẩm này</small>
+                        <% } %>
+                    <% } else { %>
+                        <select id="buyVoucherCode" disabled>
+                            <option value="">Đăng nhập để chọn voucher</option>
+                        </select>
+                        <small class="voucher-note">Chỉ user đã đăng nhập mới dùng được voucher</small>
+                    <% } %>
+                </div>
+
                 <div class="modal-actions">
-                    <button id="closeBuyModal" class="btn btn-outline">Hủy</button>
-                    <button id="confirmBuy" class="btn btn-primary">Xác nhận</button>
+                    <button type="button" id="closeBuyModal" class="btn btn-outline">Hủy</button>
+                    <button type="button" id="confirmBuy" class="btn btn-primary">Xác nhận</button>
                 </div>
             </div>
         </div>
@@ -358,20 +415,16 @@
                 const items = getItems();
 
                 document.querySelectorAll('[data-wishlist-section]').forEach((section) => {
-                    const emptyText = section.dataset.emptyText || 'Bạn chưa thêm sản phẩm nào vào mục yêu thích.';
-                    const variant = section.dataset.wishlistVariant || 'default';
-
+                    const variant = section.dataset.wishlistVariant || 'compact';
+                    const emptyText = section.dataset.emptyText || 'Chưa có sản phẩm nào.';
                     if (!items.length) {
-                        section.innerHTML = '<div class="wishlist-empty compact">' + escapeHtml(emptyText) + '</div>';
+                        section.innerHTML = `<div class="wishlist-empty">${escapeHtml(emptyText)}</div>`;
                         return;
                     }
 
                     if (variant === 'compact') {
                         section.innerHTML = renderCompactItems(items);
-                        return;
                     }
-
-                    section.innerHTML = '';
                 });
             }
 
@@ -390,43 +443,35 @@
                 refreshWishlist();
             });
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const wrap = document.getElementById('wishlistPopoverWrap');
-                const toggleBtn = document.getElementById('wishlistToggleBtn');
-                const popup = document.getElementById('wishlistPopup');
+            const toggleBtn = document.getElementById('wishlistToggleBtn');
+            const popup = document.getElementById('wishlistPopup');
+            const wrap = document.getElementById('wishlistPopoverWrap');
 
-                if (wrap && toggleBtn && popup) {
-                    toggleBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const isOpen = popup.classList.contains('show');
-                        popup.classList.toggle('show', !isOpen);
-                        popup.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-                    });
+            if (toggleBtn && popup && wrap) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    popup.classList.toggle('show');
+                    popup.setAttribute('aria-hidden', popup.classList.contains('show') ? 'false' : 'true');
+                });
 
-                    document.addEventListener('click', function (e) {
-                        if (!wrap.contains(e.target)) {
-                            popup.classList.remove('show');
-                            popup.setAttribute('aria-hidden', 'true');
-                        }
-                    });
+                document.addEventListener('click', function (e) {
+                    if (!wrap.contains(e.target)) {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
 
-                    document.addEventListener('keydown', function (e) {
-                        if (e.key === 'Escape') {
-                            popup.classList.remove('show');
-                            popup.setAttribute('aria-hidden', 'true');
-                        }
-                    });
-                }
-
-                refreshWishlist();
-            });
-
-            if (document.readyState !== 'loading') {
-                refreshWishlist();
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
             }
+
+            refreshWishlist();
         })();
     </script>
-
 </body>
 
 </html>

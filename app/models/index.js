@@ -36,7 +36,14 @@ db.passwordResetRequests = require("./passwordResetRequest.model.js")(
   sequelize,
   Sequelize,
 );
+db.vouchers = require("./voucher.model.js")(sequelize, Sequelize);
+db.tutorials.hasMany(db.vouchers, {
+  foreignKey: "tutorialId",
+});
 
+db.vouchers.belongsTo(db.tutorials, {
+  foreignKey: "tutorialId",
+});
 // ===== RELATIONS (FIX ALIAS) =====
 db.users.hasOne(db.carts, { foreignKey: "userId" });
 db.carts.belongsTo(db.users, { foreignKey: "userId" });

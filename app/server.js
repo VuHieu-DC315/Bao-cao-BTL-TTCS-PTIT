@@ -36,6 +36,8 @@ const Sequelize = db.Sequelize;
 const PasswordResetRequest = db.passwordResetRequests;
 const cartRouter = require("./routes/cart.router");
 const announcementRouter = require("./routes/announcement.router");
+const voucherRouter = require("./routes/voucher.routes");
+
 
 const renderView = (res, viewName, data = {}) => {
   return res.render(viewName, data, (err, html) => {
@@ -52,7 +54,7 @@ const isValidEmail = (email) => {
 };
 
 db.sequelize
-  .sync()
+  .sync({ alter: true })
   .then(() => {
     console.log("Synced database.");
   })
@@ -327,8 +329,15 @@ app.get("/admin", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/login");
+  delete req.session.user;
+
+  req.session.save((err) => {
+    if (err) {
+      console.log("Logout session save error:", err);
+      return res.redirect("/login");
+    }
+
+    return res.redirect("/login");
   });
 });
 
@@ -337,6 +346,7 @@ require("./routes/tutorial.api")(app);
 require("./routes/user.routes")(app);
 app.use("/cart", cartRouter);
 app.use("/announcements", announcementRouter);
+app.use("/admin/vouchers", voucherRouter);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

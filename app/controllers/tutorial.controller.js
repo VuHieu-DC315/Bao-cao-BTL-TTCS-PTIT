@@ -1,14 +1,96 @@
+const fs = require("fs");
+const path = require("path");
 const db = require("../models");
 const Tutorial = db.tutorials;
 const Order = db.orders;
-const Op = db.Sequelize.Op;
+const Voucher = db.vouchers;
 const Announcement = db.announcements;
-const fs = require("fs");
-const path = require("path");
+const Op = db.Sequelize.Op;
+
+const {
+  normalizeVoucherCode,
+  isVoucherInTime,
+  calculateDiscount,
+} = require("../utils/voucher");
+
+function parseNonNegativeInt(value, defaultValue = 0) {
+  const parsed = parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : defaultValue;
+}
+
+function parsePositiveInt(value, defaultValue = 1) {
+  const parsed = parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
+}
+
+function parsePublishedValue(value) {
+  return (
+    value === true ||
+    value === "true" ||
+    value === 1 ||
+    value === "1" ||
+    value === "on"
+  );
+}
+
+function getGuestOrderIds(req) {
+  if (!Array.isArray(req.session.guestOrderIds)) {
+    req.session.guestOrderIds = [];
+  }
+  return req.session.guestOrderIds;
+}
+
+function addGuestOrderId(req, orderId) {
+  const guestOrderIds = getGuestOrderIds(req);
+  if (!guestOrderIds.includes(orderId)) {
+    guestOrderIds.unshift(orderId);
+  }
+  req.session.guestOrderIds = guestOrderIds;
+}
+
+function formatAnnouncements(announcements) {
+  const uniqueAnnouncements = [];
+  const seenIds = new Set();
+
+  for (const item of announcements) {
+    if (!seenIds.has(item.id)) {
+      seenIds.add(item.id);
+      uniqueAnnouncements.push(item);
+    }
+  }
+
+  const formatVN = (date) => {
+    if (!date) return "";
+    return new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(new Date(date));
+  };
+
+  return uniqueAnnouncements.map((item) => ({
+    ...item.toJSON(),
+    startDateVN: item.startDate ? formatVN(item.startDate) : null,
+    endDateVN: item.endDate ? formatVN(item.endDate) : null,
+  }));
+}
+
 module.exports = {
   getAll: async (req, res) => {
-    let tutorials = await Tutorial.findAll();
-    return res.render("tutorial.ejs", { tutorials });
+    try {
+      const tutorials = await Tutorial.findAll({
+        order: [["id", "DESC"]],
+      });
+
+      return res.render("tutorial.ejs", { tutorials });
+    } catch (error) {
+      console.log("getAll tutorials error =", error);
+      return res.status(500).send("Lỗi khi lấy danh sách sản phẩm");
+    }
   },
 
   getLandingPage: async (req, res) => {
@@ -20,7 +102,7 @@ module.exports = {
         limit: 6,
       });
 
-      let announcements = await Announcement.findAll({
+      const announcements = await Announcement.findAll({
         where: {
           [Op.or]: [
             { isPermanent: true },
@@ -33,7 +115,10 @@ module.exports = {
                   ],
                 },
                 {
-                  [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: now } }],
+                  [Op.or]: [
+                    { endDate: null },
+                    { endDate: { [Op.gte]: now } },
+                  ],
                 },
               ],
             },
@@ -42,40 +127,13 @@ module.exports = {
         order: [["createdAt", "DESC"]],
       });
 
-      const uniqueAnnouncements = [];
-      const seenIds = new Set();
-
-      for (const item of announcements) {
-        if (!seenIds.has(item.id)) {
-          seenIds.add(item.id);
-          uniqueAnnouncements.push(item);
-        }
-      }
-
-      const formatVN = (date) => {
-        if (!date) return "";
-        return new Intl.DateTimeFormat("vi-VN", {
-          timeZone: "Asia/Ho_Chi_Minh",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }).format(new Date(date));
-      };
-
-      const formattedAnnouncements = uniqueAnnouncements.map((item) => ({
-        ...item.toJSON(),
-        startDateVN: item.startDate ? formatVN(item.startDate) : null,
-        endDateVN: item.endDate ? formatVN(item.endDate) : null,
-      }));
+      const formattedAnnouncements = formatAnnouncements(announcements);
 
       return res.render("home.ejs", {
         tutorials,
         announcements: formattedAnnouncements.slice(0, 3),
         hasMoreAnnouncements: formattedAnnouncements.length > 3,
-        user: req.session.user,
+        user: req.session.user || null,
       });
     } catch (error) {
       console.log("getLandingPage error =", error);
@@ -85,24 +143,23 @@ module.exports = {
 
   create: async (req, res) => {
     try {
-      const parsedPrice = parseInt(req.body.price, 10);
-      const parsedQuantity = parseInt(req.body.quantity, 10);
+      const price = parseNonNegativeInt(req.body.price, 0);
+      const quantity = parseNonNegativeInt(req.body.quantity, 0);
 
-      const quantity =
-        Number.isInteger(parsedQuantity) && parsedQuantity >= 0
-          ? parsedQuantity
-          : 0;
+      const tutorial = await Tutorial.create({
+        title: String(req.body.title || "").trim(),
+        description: String(req.body.description || "").trim(),
+        price,
+        quantity,
+        published: parsePublishedValue(req.body.published) && quantity > 0,
+      });
 
-      const tutorial = {
-        title: req.body.title,
-        description: req.body.description,
-        price:
-          Number.isInteger(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0,
-        quantity: quantity,
-        published: req.body.published === "true" && quantity > 0,
-      };
+      if (req.file && req.file.buffer) {
+        const imageDir = path.join(__dirname, "../public/image");
+        fs.mkdirSync(imageDir, { recursive: true });
+        fs.writeFileSync(path.join(imageDir, `${tutorial.id}.jpg`), req.file.buffer);
+      }
 
-      await Tutorial.create(tutorial);
       return res.redirect("/admin/products");
     } catch (error) {
       console.log("create tutorial error =", error);
@@ -110,9 +167,13 @@ module.exports = {
     }
   },
 
+  getCreate: (req, res) => {
+    return res.render("create.ejs");
+  },
+
   getHomesalePage: async (req, res) => {
     try {
-      const q = (req.query.q || "").trim();
+      const q = String(req.query.q || "").trim();
       const now = new Date();
 
       const tutorialWhere = q
@@ -126,9 +187,10 @@ module.exports = {
 
       const tutorials = await Tutorial.findAll({
         where: tutorialWhere,
+        order: [["id", "DESC"]],
       });
 
-      let announcements = await Announcement.findAll({
+      const announcements = await Announcement.findAll({
         where: {
           [Op.or]: [
             { isPermanent: true },
@@ -141,7 +203,10 @@ module.exports = {
                   ],
                 },
                 {
-                  [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: now } }],
+                  [Op.or]: [
+                    { endDate: null },
+                    { endDate: { [Op.gte]: now } },
+                  ],
                 },
               ],
             },
@@ -150,43 +215,14 @@ module.exports = {
         order: [["createdAt", "DESC"]],
       });
 
-      // chống trùng theo id
-      const uniqueAnnouncements = [];
-      const seenIds = new Set();
-
-      for (const item of announcements) {
-        if (!seenIds.has(item.id)) {
-          seenIds.add(item.id);
-          uniqueAnnouncements.push(item);
-        }
-      }
-
-      // format giờ VN
-      const formatVN = (date) => {
-        if (!date) return "";
-        return new Intl.DateTimeFormat("vi-VN", {
-          timeZone: "Asia/Ho_Chi_Minh",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }).format(new Date(date));
-      };
-
-      const formattedAnnouncements = uniqueAnnouncements.map((item) => ({
-        ...item.toJSON(),
-        startDateVN: item.startDate ? formatVN(item.startDate) : null,
-        endDateVN: item.endDate ? formatVN(item.endDate) : null,
-      }));
+      const formattedAnnouncements = formatAnnouncements(announcements);
 
       return res.render("homepage.ejs", {
         tutorials,
         announcements: formattedAnnouncements.slice(0, 3),
         hasMoreAnnouncements: formattedAnnouncements.length > 3,
-        user: req.session.user,
-        q: q,
+        user: req.session.user || null,
+        q,
       });
     } catch (error) {
       console.log("getHomesalePage error =", error);
@@ -195,122 +231,261 @@ module.exports = {
   },
 
   getBuyPage: async (req, res) => {
-    try {
-      if (!req.session.user) {
-        return res.redirect(
-          "/login?error=" + encodeURIComponent("Bạn cần đăng nhập để mua hàng"),
-        );
-      }
+  try {
+    const id = parseInt(req.params.id, 10);
+    const tutorial = await Tutorial.findByPk(id);
 
-      const id = req.params.id;
-      const tutorial = await Tutorial.findByPk(id);
-
-      if (!tutorial) {
-        return res.status(404).send(`Cannot find tutorial with id=${id}`);
-      }
-
-      return res.render("buypage.ejs", { tutorial });
-    } catch (error) {
-      return res.status(500).send("Server error");
+    if (!tutorial) {
+      return res.status(404).send(`Cannot find tutorial with id=${req.params.id}`);
     }
-  },
+
+    let availableVouchers = [];
+
+    if (req.session.user) {
+      const rawVouchers = await Voucher.findAll({
+        where: {
+          isActive: true,
+          [Op.or]: [
+            { appliesTo: "all" },
+            { appliesTo: "product", tutorialId: id },
+            { appliesTo: "tutorial", tutorialId: id },
+          ],
+        },
+        order: [["id", "DESC"]],
+      });
+
+      const now = new Date();
+
+      availableVouchers = rawVouchers.filter((voucher) => {
+        const inTime =
+          (!voucher.startDate || new Date(voucher.startDate) <= now) &&
+          (!voucher.endDate || new Date(voucher.endDate) >= now);
+
+        const stillAvailable =
+          Number(voucher.usedCount || 0) < Number(voucher.quantity || 0);
+
+        return inTime && stillAvailable;
+      });
+    }
+
+    return res.render("buypage.ejs", {
+      tutorial,
+      user: req.session.user || null,
+      availableVouchers,
+    });
+  } catch (error) {
+    console.log("getBuyPage error =", error);
+    return res.status(500).send("Lỗi tải trang mua hàng");
+  }
+},
 
   buyTutorial: async (req, res) => {
+    const transaction = await db.sequelize.transaction();
+
     try {
-      if (!req.session.user) {
-        return res.status(401).json({
-          message: "Bạn cần đăng nhập để mua hàng",
+      const tutorialId = Number(req.body.tutorialId);
+      const buyQuantity = Number(req.body.quantity);
+      const email = String(req.body.email || "").trim();
+      const phone = String(req.body.phone || "").trim();
+
+      if (!tutorialId || !Number.isInteger(buyQuantity) || buyQuantity <= 0) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: "Dữ liệu mua hàng không hợp lệ",
         });
       }
 
-      const { tutorialId, quantity, email, phone } = req.body;
-
       if (!email || !phone) {
+        await transaction.rollback();
         return res.status(400).json({
           message: "Vui lòng nhập email và số điện thoại",
         });
       }
 
-      const tutorial = await Tutorial.findByPk(tutorialId);
+      const tutorial = await Tutorial.findByPk(tutorialId, { transaction });
 
       if (!tutorial) {
+        await transaction.rollback();
         return res.status(404).json({
           message: "Sản phẩm không tồn tại",
         });
       }
 
-      const parsedQuantity = parseInt(quantity, 10);
-      const buyQuantity =
-        Number.isInteger(parsedQuantity) && parsedQuantity > 0
-          ? parsedQuantity
-          : 1;
-
-      if (!tutorial.published || tutorial.quantity <= 0) {
+      if (!tutorial.published) {
+        await transaction.rollback();
         return res.status(400).json({
-          message: "Sản phẩm đã hết hàng hoặc ngừng bán",
+          message: "Sản phẩm hiện không thể mua",
         });
       }
 
-      if (buyQuantity > tutorial.quantity) {
+      if (Number(tutorial.quantity || 0) < buyQuantity) {
+        await transaction.rollback();
         return res.status(400).json({
           message: "Số lượng mua vượt quá tồn kho",
         });
       }
 
-      const order = await Order.create({
-        userId: req.session.user.id,
-        tutorialId: tutorial.id,
-        title: tutorial.title,
-        quantity: buyQuantity,
-        email,
-        phone,
-        price: tutorial.price || 0,
-        status: "pending",
-      });
+      const originalAmount = buyQuantity * Number(tutorial.price || 0);
+      const voucherCode = normalizeVoucherCode(req.body.voucherCode);
+      let voucherDiscount = 0;
+      let finalAmount = originalAmount;
 
-      tutorial.quantity = tutorial.quantity - buyQuantity;
+      if (voucherCode) {
+        if (!req.session.user) {
+          await transaction.rollback();
+          return res.status(400).json({
+            message: "Bạn cần đăng nhập để dùng voucher",
+          });
+        }
 
+        const voucher = await Voucher.findOne({
+          where: { code: voucherCode },
+          transaction,
+        });
+
+        if (!voucher) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Voucher không tồn tại" });
+        }
+
+        if (!voucher.isActive) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Voucher đã bị khóa" });
+        }
+
+        if (!isVoucherInTime(voucher)) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Voucher không còn hiệu lực" });
+        }
+
+        if (Number(voucher.usedCount || 0) >= Number(voucher.quantity || 0)) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Voucher đã hết lượt sử dụng" });
+        }
+
+        if (originalAmount < Number(voucher.minOrderTotal || 0)) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Đơn hàng chưa đủ giá trị tối thiểu" });
+        }
+
+        if (
+          (voucher.appliesTo === "product" || voucher.appliesTo === "tutorial") &&
+          Number(voucher.tutorialId) !== Number(tutorial.id)
+        ) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Voucher không áp dụng cho sản phẩm này" });
+        }
+
+        voucherDiscount = calculateDiscount({
+          discountType: voucher.discountType,
+          discountValue: voucher.discountValue,
+          maxDiscount: voucher.maxDiscount,
+          baseAmount: originalAmount,
+        });
+
+        finalAmount = Math.max(0, originalAmount - voucherDiscount);
+
+        voucher.usedCount = Number(voucher.usedCount || 0) + 1;
+        await voucher.save({ transaction });
+      }
+
+      tutorial.quantity = Number(tutorial.quantity || 0) - buyQuantity;
       if (tutorial.quantity <= 0) {
         tutorial.quantity = 0;
         tutorial.published = false;
       }
+      await tutorial.save({ transaction });
 
-      await tutorial.save();
+      const order = await Order.create(
+        {
+          userId: req.session.user ? req.session.user.id : null,
+          tutorialId: tutorial.id,
+          title: tutorial.title,
+          quantity: buyQuantity,
+          email,
+          phone,
+          price: Number(tutorial.price || 0),
+          originalAmount,
+          voucherCode: voucherCode || null,
+          voucherDiscount,
+          finalAmount,
+          status: "pending",
+        },
+        { transaction },
+      );
 
-      return res.json({
-        message: "Buy success",
+      await transaction.commit();
+
+      if (!req.session.user) {
+        addGuestOrderId(req, order.id);
+      }
+
+      return res.status(200).json({
+        message: "Mua hàng thành công",
         order,
       });
     } catch (error) {
-      console.log("buyTutorial error =", error);
+      await transaction.rollback();
+      console.error("buyTutorial error:", error);
       return res.status(500).json({
-        message: "Error when buying tutorial",
+        message: "Mua hàng thất bại",
       });
     }
   },
 
-  getCreate: (req, res) => {
-    return res.render("create.ejs");
+  findOne: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const tutorial = await Tutorial.findByPk(id);
+
+      if (!tutorial) {
+        return res.status(404).send({
+          message: `Cannot find Tutorial with id=${id}.`,
+        });
+      }
+
+      return res.send(tutorial);
+    } catch (error) {
+      return res.status(500).send({
+        message: "Error retrieving Tutorial with id=" + req.params.id,
+      });
+    }
   },
 
-  findOne: (req, res) => {
-    const id = req.params.id;
+  update: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const quantity = parseNonNegativeInt(req.body.quantity, 0);
 
-    Tutorial.findByPk(id)
-      .then((data) => {
-        if (data) {
-          res.send(data);
-        } else {
-          res.status(404).send({
-            message: `Cannot find Tutorial with id=${id}.`,
-          });
-        }
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: "Error retrieving Tutorial with id=" + id,
-        });
+      const dataToUpdate = {
+        title: String(req.body.title || "").trim(),
+        description: String(req.body.description || "").trim(),
+        quantity,
+        published: parsePublishedValue(req.body.published) && quantity > 0,
+      };
+
+      if (req.body.price !== undefined) {
+        dataToUpdate.price = parseNonNegativeInt(req.body.price, 0);
+      }
+
+      const [updatedRows] = await Tutorial.update(dataToUpdate, {
+        where: { id },
       });
+
+      if (updatedRows === 1) {
+        return res.send({
+          message: "Tutorial was updated successfully.",
+        });
+      }
+
+      return res.send({
+        message: `Cannot update Tutorial with id=${id}. Maybe Tutorial was not found or req.body is empty!`,
+      });
+    } catch (error) {
+      return res.status(500).send({
+        message: "Error updating Tutorial with id=" + req.params.id,
+      });
+    }
   },
 
   getAllOrders: async (req, res) => {
@@ -331,6 +506,44 @@ module.exports = {
       return res.status(500).send("Lỗi khi lấy danh sách orders");
     }
   },
+
+  updateOrderStatus: async (req, res) => {
+    try {
+      if (!req.session.user || req.session.user.role !== "admin") {
+        return res
+          .status(403)
+          .send("Bạn không có quyền cập nhật trạng thái đơn hàng");
+      }
+
+      const id = req.params.id;
+      const { status } = req.body;
+
+      const allowedStatuses = [
+        "pending",
+        "confirmed",
+        "shipping",
+        "completed",
+        "cancelled",
+      ];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).send("Trạng thái không hợp lệ");
+      }
+
+      const order = await Order.findByPk(id);
+      if (!order) {
+        return res.status(404).send("Không tìm thấy đơn hàng");
+      }
+
+      order.status = status;
+      await order.save();
+
+      return res.redirect("/admin/orders");
+    } catch (error) {
+      console.log("updateOrderStatus error =", error);
+      return res.status(500).send("Lỗi cập nhật trạng thái đơn hàng");
+    }
+  },
+
   getRevenuePage: async (req, res) => {
     try {
       if (!req.session.user || req.session.user.role !== "admin") {
@@ -358,7 +571,7 @@ module.exports = {
 
       const tutorialMap = new Map();
       tutorials.forEach((tutorial) => {
-        tutorialMap.set(tutorial.id, tutorial);
+        tutorialMap.set(Number(tutorial.id), tutorial);
       });
 
       const completedOrders = await Order.findAll({
@@ -390,15 +603,20 @@ module.exports = {
 
         const quantity = Number(order.quantity) || 0;
         const unitPrice = Number(order.price) || 0;
-        const revenue = quantity * unitPrice;
+        const revenue =
+          Number(order.finalAmount || 0) > 0
+            ? Number(order.finalAmount || 0)
+            : Number(order.originalAmount || 0) > 0
+              ? Number(order.originalAmount || 0)
+              : quantity * unitPrice;
 
         totalRevenueMonth += revenue;
         totalUnitsSoldMonth += quantity;
         totalOrdersMonth += 1;
 
-        const tutorial = tutorialMap.get(order.tutorialId);
-        const existing = productStatsMap.get(order.tutorialId) || {
-          id: order.tutorialId,
+        const tutorial = tutorialMap.get(Number(order.tutorialId));
+        const existing = productStatsMap.get(Number(order.tutorialId)) || {
+          id: Number(order.tutorialId),
           title:
             tutorial?.title || order.title || `Sản phẩm #${order.tutorialId}`,
           price: tutorial?.price || unitPrice,
@@ -411,7 +629,7 @@ module.exports = {
         existing.unitsSold += quantity;
         existing.revenue += revenue;
 
-        productStatsMap.set(order.tutorialId, existing);
+        productStatsMap.set(Number(order.tutorialId), existing);
       });
 
       const monthOptions = [
@@ -462,90 +680,47 @@ module.exports = {
     }
   },
 
-  updateOrderStatus: async (req, res) => {
-    try {
-      if (!req.session.user || req.session.user.role !== "admin") {
-        return res
-          .status(403)
-          .send("Bạn không có quyền cập nhật trạng thái đơn hàng");
-      }
-
-      const id = req.params.id;
-      const { status } = req.body;
-
-      const allowedStatuses = [
-        "pending",
-        "confirmed",
-        "shipping",
-        "completed",
-        "cancelled",
-      ];
-      if (!allowedStatuses.includes(status)) {
-        return res.status(400).send("Trạng thái không hợp lệ");
-      }
-
-      const order = await Order.findByPk(id);
-      if (!order) {
-        return res.status(404).send("Không tìm thấy đơn hàng");
-      }
-
-      order.status = status;
-      await order.save();
-
-      return res.redirect("/admin/orders");
-    } catch (error) {
-      console.log("updateOrderStatus error =", error);
-      return res.status(500).send("Lỗi cập nhật trạng thái đơn hàng");
-    }
-  },
-
   getMyOrders: async (req, res) => {
     try {
-      if (!req.session.user) {
-        return res.redirect(
-          "/login?error=" +
-            encodeURIComponent("Bạn cần đăng nhập để xem đơn hàng của mình"),
-        );
-      }
+      let orders = [];
 
-      const orders = await Order.findAll({
-        where: {
-          userId: req.session.user.id,
-        },
-        order: [["id", "DESC"]],
-      });
+      const guestOrderIds = getGuestOrderIds(req).filter(
+        (id) => Number.isInteger(Number(id)) && Number(id) > 0,
+      );
+
+      if (req.session.user) {
+        const where = guestOrderIds.length > 0
+          ? {
+              [Op.or]: [
+                { userId: req.session.user.id },
+                { id: guestOrderIds, userId: null },
+              ],
+            }
+          : {
+              userId: req.session.user.id,
+            };
+
+        orders = await Order.findAll({
+          where,
+          order: [["id", "DESC"]],
+        });
+      } else if (guestOrderIds.length > 0) {
+        orders = await Order.findAll({
+          where: {
+            id: guestOrderIds,
+            userId: null,
+          },
+          order: [["id", "DESC"]],
+        });
+      }
 
       return res.render("myOrders.ejs", {
         orders,
-        user: req.session.user,
+        user: req.session.user || null,
       });
     } catch (error) {
       console.log("getMyOrders error =", error);
       return res.status(500).send("Lỗi khi lấy đơn hàng của bạn");
     }
-  },
-
-  update: (req, res) => {
-    const id = req.params.id;
-
-    Tutorial.update(req.body, {
-      where: { id: id },
-    })
-      .then((num) => {
-        if (num == 1) {
-          res.send({
-            message: "Tutorial was updated successfully.",
-          });
-        } else {
-          res.send({
-            message: `Cannot update Tutorial with id=${id}. Maybe Tutorial was not found or req.body is empty!`,
-          });
-        }
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: "Error updating Tutorial with id=" + id,
-        });
-      });
   },
 };

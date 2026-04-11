@@ -36,6 +36,7 @@
     }
   </style>
 </head>
+
 <body>
   <header class="topbar">
     <div class="topbar-container">
@@ -56,7 +57,11 @@
       <nav class="top-actions single">
         <a href="/shop">Về cửa hàng</a>
         <a href="/cart">Giỏ hàng</a>
+        <% if (user) { %>
         <a href="/logout">Đăng xuất</a>
+        <% } else { %>
+        <a href="/login">Đăng nhập</a>
+        <% } %>
       </nav>
     </div>
   </header>
@@ -92,6 +97,10 @@
                 <th>Email</th>
                 <th>Số điện thoại</th>
                 <th>Giá</th>
+                <th>Gốc</th>
+                <th>Voucher</th>
+                <th>Giảm</th>
+                <th>Thanh toán</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
@@ -124,6 +133,14 @@
                   <td>
                     <span class="price-badge"><%= item.price ? item.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : '-' %></span>
                   </td>
+
+                  <td><%= item.originalAmount ? item.originalAmount.toLocaleString('vi-VN') + 'đ' : '-' %></td>
+
+                  <td><%= item.voucherCode || '-' %></td>
+
+                  <td><%= item.voucherDiscount ? item.voucherDiscount.toLocaleString('vi-VN') + 'đ' : '-' %></td>
+
+                  <td><%= item.finalAmount ? item.finalAmount.toLocaleString('vi-VN') + 'đ' : '-' %></td>
 
                   <td>
                     <span class="status-badge-custom status-<%= item.status || 'pending' %>">
