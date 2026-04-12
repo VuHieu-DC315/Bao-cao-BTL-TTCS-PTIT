@@ -41,6 +41,18 @@ function addGuestOrderId(req, orderId) {
   req.session.guestOrderIds = guestOrderIds;
 }
 
+function toArray(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (value === undefined || value === null || value === "") {
+    return [];
+  }
+
+  return [value];
+}
+
 module.exports = {
   addToCart: async (req, res) => {
     try {
@@ -259,6 +271,69 @@ module.exports = {
     } catch (error) {
       console.log("updateQuantity error =", error);
       return res.status(500).send("Lỗi cập nhật giỏ hàng");
+    }
+  },
+
+  updateAllQuantities: async (req, res) => {
+    try {
+      const tutorialIds = toArray(req.body.tutorialIds);
+      const quantities = toArray(req.body.quantities);
+
+      if (!tutorialIds.length || tutorialIds.length !== quantities.length) {
+        return res.status(400).send("Dữ liệu cập nhật giỏ hàng không hợp lệ");
+      }
+
+      const parsedIds = tutorialIds.map((id) => parseInt(id, 10));
+
+      if (parsedIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+        return res.status(400).send("Có sản phẩm trong giỏ không hợp lệ");
+      }
+
+      const parsedQuantities = quantities.map((quantity) =>
+        parsePositiveInt(quantity, 1),
+      );
+
+      const tutorials = await Tutorial.findAll({
+        where: {
+          id: parsedIds,
+        },
+      });
+
+      const tutorialMap = new Map();
+      tutorials.forEach((tutorial) => {
+        tutorialMap.set(Number(tutorial.id), tutorial);
+      });
+
+      const updatedCart = [];
+
+      for (let i = 0; i < parsedIds.length; i++) {
+        const tutorialId = parsedIds[i];
+        const quantity = parsedQuantities[i];
+        const tutorial = tutorialMap.get(tutorialId);
+
+        if (!tutorial) {
+          return res.status(404).send(`Sản phẩm không còn tồn tại (ID: ${tutorialId})`);
+        }
+
+        if (!tutorial.published || Number(tutorial.quantity || 0) <= 0) {
+          return res.status(400).send(`${tutorial.title} đã hết hàng hoặc ngừng bán`);
+        }
+
+        if (quantity > Number(tutorial.quantity || 0)) {
+          return res.status(400).send(`${tutorial.title} chỉ còn ${tutorial.quantity} sản phẩm`);
+        }
+
+        updatedCart.push({
+          tutorialId,
+          quantity,
+        });
+      }
+
+      saveTempCart(req, updatedCart);
+      return res.redirect("/cart");
+    } catch (error) {
+      console.log("updateAllQuantities error =", error);
+      return res.status(500).send("Lỗi cập nhật toàn bộ giỏ hàng");
     }
   },
 

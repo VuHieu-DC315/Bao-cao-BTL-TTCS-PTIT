@@ -12,9 +12,48 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
   <script>
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString("vi-VN") + "đ";
+    }
+
+    function recalculateCartPreview() {
+      let total = 0;
+
+      $(".cart-row").each(function () {
+        const price = Number($(this).data("price") || 0);
+        const quantity = Number($(this).find(".qty-input").val() || 0);
+        const lineTotal = price * quantity;
+
+        $(this).find(".line-total-cell").text(formatMoney(lineTotal));
+        total += lineTotal;
+      });
+
+      $("#cartTotalValue").text(formatMoney(total));
+    }
+
     $(document).ready(function () {
+      recalculateCartPreview();
+
+      $(document).on("input change", ".qty-input", function () {
+        const min = Number($(this).attr("min") || 1);
+        const max = Number($(this).attr("max") || 1);
+        let value = Number($(this).val() || min);
+
+        if (!Number.isInteger(value) || value < min) {
+          value = min;
+        }
+
+        if (value > max) {
+          value = max;
+        }
+
+        $(this).val(value);
+        recalculateCartPreview();
+      });
+
       $("#btnBuyCart").click(function () {
-        $("#buyTotal").val("<%= total %>");
+        const currentTotalText = $("#cartTotalValue").text() || formatMoney(<%= total %>);
+        $("#buyTotal").val(currentTotalText);
         $("#buyEmail").val("<%= user?.email || '' %>");
         $("#buyPhone").val("");
         $("#buyVoucherCode").val("");
@@ -100,50 +139,58 @@
       <% if (cartItems.length === 0) { %>
         <div class="empty-cart">Giỏ hàng trống</div>
       <% } else { %>
-        <table class="cart-table">
-          <thead>
-            <tr>
-              <th>Tên sản phẩm</th>
-              <th>Giá</th>
-              <th>Số lượng</th>
-              <th>Thành tiền</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% cartItems.forEach(item => { %>
+        <form action="/cart/items/update-all" method="POST" id="cartUpdateForm">
+          <table class="cart-table">
+            <thead>
               <tr>
-                <td class="product-title-cell"><%= item.tutorial.title %></td>
-                <td><%= item.tutorial.price %></td>
-                <td>
-                  <form action="/cart/items/update" method="POST" class="qty-form">
-                    <input type="hidden" name="itemId" value="<%= item.tutorialId %>">
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% cartItems.forEach(item => { %>
+                <tr class="cart-row" data-price="<%= Number(item.tutorial.price || 0) %>">
+                  <td class="product-title-cell"><%= item.tutorial.title %></td>
+                  <td><%= Number(item.tutorial.price || 0).toLocaleString('vi-VN') %>đ</td>
+                  <td>
+                    <input type="hidden" name="tutorialIds" value="<%= item.tutorialId %>">
                     <input
                       type="number"
-                      name="quantity"
+                      name="quantities"
                       class="qty-input"
                       value="<%= item.quantity %>"
                       min="1"
                       max="<%= item.tutorial.quantity %>">
-                    <button type="submit" class="btn-update">Cập nhật</button>
-                  </form>
-                </td>
-                <td class="line-total-cell"><%= item.quantity * item.tutorial.price %></td>
-                <td>
-                  <form action="/cart/items/delete" method="POST" class="delete-form">
-                    <input type="hidden" name="itemId" value="<%= item.tutorialId %>">
-                    <button type="submit" class="btn-delete">Xóa</button>
-                  </form>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
+                    <div class="qty-note">Tối đa: <%= item.tutorial.quantity %></div>
+                  </td>
+                  <td class="line-total-cell"><%= Number(item.lineTotal || 0).toLocaleString('vi-VN') %>đ</td>
+                  <td>
+                    <button
+                      type="submit"
+                      class="btn-delete"
+                      name="itemId"
+                      value="<%= item.tutorialId %>"
+                      formaction="/cart/items/delete"
+                      formmethod="POST">
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
 
-        <div class="cart-footer">
-          <div class="cart-total">Tổng tiền: <span><%= total %>đ</span></div>
-          <button id="btnBuyCart" class="btn-buy">Thanh toán</button>
-        </div>
+          <div class="cart-footer">
+            <div class="cart-total">Tổng tiền: <span id="cartTotalValue"><%= Number(total || 0).toLocaleString('vi-VN') %>đ</span></div>
+            <div class="cart-actions">
+              <button type="submit" class="btn-update-cart">Cập nhật giỏ hàng</button>
+              <button type="button" id="btnBuyCart" class="btn-buy">Thanh toán</button>
+            </div>
+          </div>
+        </form>
       <% } %>
     </div>
   </main>
