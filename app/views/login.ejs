@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập</title>
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+
+<body>
+
+  <main class="page">
+    <section class="auth-shell">
+      <div class="promo-side">
+        <div class="brand-section">
+          <img src="/image/Shop_logo.jpg" alt="PShop Logo" class="brand-logo-promo">
+  
+          <div class="brand-text-group">
+            <span class="brand-name-promo">PShop</span>
+            <p class="brand-tagline">Thế giới mua sắm đồ công nghệ</p>
+          </div>
+        </div>
+
+        <h1 class="promo-title">
+          Nhập hội khách hàng thành viên <span class="accent">Pmember</span>
+        </h1>
+        <p class="promo-subtitle">
+          Để không bỏ lỡ các ưu đãi hấp dẫn từ PShop
+        </p>
+
+        <div class="benefit-card">
+          <span class="benefit-frame-top"></span>
+          <span class="benefit-frame-bottom"></span>
+
+          <ul class="benefit-list">
+            <li><span class="gift-icon">🎁</span><span><strong>Chiết khấu đến 5%</strong> khi mua các sản phẩm mua tại PShop</span></li>
+            <li><span class="gift-icon">🎁</span><span><strong>Miễn phí giao hàng</strong> cho đơn hàng từ 300.000đ</span></li>
+            <li><span class="gift-icon">🎁</span><span><strong>Tặng voucher sinh nhật đến 500.000đ</strong> cho khách hàng thành viên</span></li>
+            <li><span class="gift-icon">🎁</span><span><strong>Trợ giá thu cũ lên đời đến 1 triệu</strong></span></li>
+            <li><span class="gift-icon">🎁</span><span><strong>Thăng hạng nhận voucher đến 300.000đ</strong></span></li>
+            <li><span class="gift-icon">🎁</span><span>Đặc quyền P-Student/P-Teacher <strong>ưu đãi thêm đến 10%</strong></span></li>
+            <li><span class="gift-icon">🎁</span><span><strong>P-Business:</strong> Chiết khấu đến 8% dành riêng cho khách hàng doanh nghiệp</span></li>
+          </ul>
+
+        </div>
+      </div>
+
+      <div class="login-side">
+        <div class="login-box">
+          <h2 class="login-title">Đăng nhập</h2>
+
+          <% if (error) { %>
+            <div class="error-message" style="color: red; margin-bottom: 10px; text-align: center;">
+              <%= error %>
+            </div>
+          <% } %>
+
+          <form method="POST" action="/login">
+            <div class="form-group">
+              <label for="tk">Tài khoản</label>
+              <input type="text" id="tk" name="tk" placeholder="Nhập tài khoản của bạn" required>
+            </div>
+
+            <div class="form-group">
+              <label for="mk">Mật khẩu</label>
+              <div class="password-wrap">
+                <input type="password" id="mk" name="mk" placeholder="Nhập mật khẩu của bạn" required>
+                <button type="button" class="toggle-password" aria-label="Hiện mật khẩu" onclick="togglePassword()">
+                  👁
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-btn">Đăng nhập</button>
+          </form>
+
+          <a class="forgot-link" href="/forgot-password">Quên mật khẩu?</a>
+
+          <div class="bottom-text">
+            <div class="register-text">
+              Bạn chưa có tài khoản?
+              <a href="/register">Đăng ký ngay</a>
+            </div>
+
+            <div class="home-back">
+              <a href="/">Quay về trang chủ</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('mk');
+      const toggleBtn = document.querySelector('.toggle-password');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.innerHTML = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.innerHTML = '👁';
+      }
+    }
+  </script>
+</body>
+
+</html>

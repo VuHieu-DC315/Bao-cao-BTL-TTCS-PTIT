@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quản lý Kho Sản phẩm</title>
+
+    <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+    <link rel="stylesheet" href="/css/tutorial.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-container">
+            <a href="/" class="brand-logo" aria-label="Trang chủ">
+                <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+                <div class="brand-logo-text">
+                    <span class="brand-main">PShop</span>
+                    <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
+                </div>
+            </a>
+
+            <div class="topbar-actions">
+                <a href="/admin" class="topbar-link">Trang admin</a>
+                <a href="/admin/products/new" class="topbar-btn">Nhập sản phẩm mới</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="hero">
+            <div class="hero-left">
+                <p class="hero-tag">BẢNG ĐIỀU KHIỂN</p>
+                <h1>Kho sản phẩm công nghệ</h1>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Tổng Sản Phẩm</span>
+                    <strong class="stat-value">
+                        <%= tutorials.length %> mã
+                    </strong>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Trạng thái kho</span>
+                    <strong class="stat-value">Đang hoạt động</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-card">
+            <div class="card-head">
+                <div>
+                    <h2>Danh mục sản phẩm</h2>
+                    <p>Quản lý thông tin, giá bán và trạng thái kinh doanh của thiết bị</p>
+                </div>
+
+                <a href="/admin/products/new" class="create-btn">+ Thêm sản phẩm</a>
+            </div>
+
+            <div class="table-wrap">
+                <table class="tutorial-table">
+                    <thead>
+                        <tr>
+                            <th>Ảnh thiết bị</th>
+                            <th>ID sản phẩm</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Thông số kỹ thuật</th>
+                            <th>Số lượng</th>
+                            <th>Trạng thái hàng</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% tutorials.forEach(function(item) { %>
+                            <tr>
+                                <td>
+                                    <div class="thumb-box">
+                                        <img src="/product-images/<%= item.id %>" alt="Sản phẩm" class="thumb-img" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="id-badge">
+                                        <%= item.id %>
+                                    </span>
+                                </td>
+                                <td class="tdTitle title-cell">
+                                    <strong><%= item.title %></strong>
+                                </td>
+                                <td class="tdDescription desc-cell">
+                                    <%= item.description %>
+                                </td>
+                                <td class="tdQuantity">
+                                    <%= item.quantity || 0 %>
+                                </td>
+                                <td class="tdPublished">
+                                    <% if ((item.quantity || 0) <= 0) { %>
+                                        <span class="status-badge status-draft">Hết hàng</span>
+                                    <% } else if (item.published) { %>
+                                        <span class="status-badge status-active">Đang kinh doanh</span>
+                                    <% } else { %>
+                                        <span class="status-badge status-draft">Ngừng kinh doanh</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="action-group">
+                                        <button class="btnUpdate btn-action btn-edit"
+                                            data-id="<%= item.id %>">Sửa</button>
+                                        <button class="btnDelete btn-action btn-delete"
+                                            data-id="<%= item.id %>">Xoá</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="updateModal" class="modal-overlay" style="display: none;">
+            <div class="modal-box">
+                <button id="closeModal" class="modal-close" type="button"
+                    style="position:absolute;top:14px;right:18px;font-size:28px;background:none;border:none;cursor:pointer;">&times;</button>
+                <div class="card-head modal-head">
+                    <div>
+                        <p class="edit-tag">CHỈNH SỬA THÔNG TIN</p>
+                        <h2>Cập nhật chi tiết sản phẩm</h2>
+                        <p>Thay đổi tên, mô tả hoặc trạng thái hiển thị trên website</p>
+                    </div>
+                </div>
+
+                <input type="hidden" id="updateId" />
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label for="updateTitle">Tên sản phẩm / Model</label>
+                        <input type="text" id="updateTitle" placeholder="Ví dụ: iPhone 15 Pro Max 256GB" />
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="updateDescription">Mô tả cấu hình & bảo hành</label>
+                        <textarea id="updateDescription" placeholder="Nhập chi tiết thông số kỹ thuật..."></textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="updateQuantity">Số lượng tồn kho</label>
+                        <input type="number" id="updateQuantity" min="0" placeholder="Nhập số lượng tồn kho" />
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="updateImage">Ảnh sản phẩm mới (không bắt buộc)</label>
+                        <input type="file" id="updateImage" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="toggle-field">
+                            <input type="checkbox" id="updatePublished" />
+                            <span class="toggle-box"></span>
+                            <span class="toggle-text">Kích hoạt bán sản phẩm này trên hệ thống</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="saveUpdate" class="primary-btn">Cập nhật ngay</button>
+                    <button id="cancelUpdate" class="secondary-btn" type="button">Bỏ qua</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        $(document).ready(function () {
+            function showModal() {
+                $("#updateModal").fadeIn(120);
+                $("body").css("overflow", "hidden");
+            }
+
+            function hideModal() {
+                $("#updateModal").fadeOut(120);
+                $("body").css("overflow", "auto");
+            }
+
+            $("#closeModal, #cancelUpdate").on("click", function () {
+                hideModal();
+            });
+
+            $("#updateModal").on("click", function (e) {
+                if (e.target === this) hideModal();
+            });
+
+            $(".btnDelete").click(function () {
+                const id = $(this).attr("data-id");
+
+                if (confirm(`Bạn có chắc muốn xoá sản phẩm mã #${id} khỏi hệ thống?`)) {
+                    $.ajax({
+                        url: `${window.location.origin}/api/tutorials/${id}`,
+                        method: "DELETE",
+                        success: () => {
+                            $(this).closest("tr").fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        },
+                        error: function (error) {
+                            console.log("Lỗi xoá:", error);
+                            alert("Không thể kết nối máy chủ để xoá sản phẩm.");
+                        }
+                    });
+                }
+            });
+
+            $(document).on("click", ".btnUpdate", function () {
+                const id = $(this).attr("data-id");
+                const row = $(this).closest("tr");
+                const title = row.find(".tdTitle").text().trim();
+                const description = row.find(".tdDescription").text().trim();
+                const quantity = row.find(".tdQuantity").text().trim();
+                const published = row.find(".tdPublished").text().trim().includes("Đang kinh doanh");
+
+                $("#updateId").val(id);
+                $("#updateTitle").val(title);
+                $("#updateDescription").val(description);
+                $("#updateQuantity").val(quantity);
+                $("#updatePublished").prop("checked", published);
+                $("#updateImage").val("");
+
+                showModal();
+            });
+
+            $("#saveUpdate").click(function () {
+                const id = $("#updateId").val();
+
+                const formData = new FormData();
+                formData.append("title", $("#updateTitle").val());
+                formData.append("description", $("#updateDescription").val());
+                formData.append("quantity", $("#updateQuantity").val());
+                formData.append("published", $("#updatePublished").is(":checked") ? "true" : "false");
+
+                const imageFile = $("#updateImage")[0].files[0];
+                if (imageFile) {
+                    formData.append("image", imageFile);
+                }
+
+                $.ajax({
+                    url: `${window.location.origin}/api/tutorials/${id}`,
+                    method: "PUT",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function () {
+                        alert("Thông tin sản phẩm đã được cập nhật!");
+                        location.reload();
+                    },
+                    error: function (error) {
+                        console.log("Lỗi cập nhật:", error);
+                        alert("Lỗi: Không thể lưu thông tin sản phẩm.");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

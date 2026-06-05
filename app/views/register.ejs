@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đăng ký tài khoản</title>
+
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/register.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="auth-layout">
+      <div class="promo-panel">
+        <div class="brand-row">
+          <a href="/" class="brand-logo" aria-label="Trang chủ">
+            <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+            <div>
+              <div class="brand-main">PShop</div>
+              <div class="brand-sub">Thế giới mua sắm đồ công nghệ</div>
+            </div>
+          </a>
+        </div>
+
+        <h2 class="promo-title">
+          Đăng ký tài khoản nhận Voucher <span>Bạn Mới</span>
+        </h2>
+
+        <p class="promo-desc">
+          Tạo tài khoản để nhận ưu đãi, theo dõi đơn hàng nhanh hơn và mua sắm thuận tiện hơn trên hệ thống của bạn.
+        </p>
+
+        <div class="benefit-card">
+          <ul class="benefit-list">
+            <li>
+              <span class="benefit-icon">%</span>
+              <span><strong>Ưu đãi thành viên</strong> cho các sản phẩm công nghệ nổi bật mỗi tháng.</span>
+            </li>
+            <li>
+              <span class="benefit-icon">✓</span>
+              <span><strong>Theo dõi đơn hàng</strong> và lịch sử mua sắm dễ dàng ngay sau khi đăng nhập.</span>
+            </li>
+            <li>
+              <span class="benefit-icon">🎁</span>
+              <span><strong>Nhận voucher</strong> vào các dịp đặc biệt và chương trình khuyến mãi.</span>
+            </li>
+            <li>
+              <span class="benefit-icon">⚡</span>
+              <span><strong>Thanh toán nhanh hơn</strong> với thông tin tài khoản đã được lưu sẵn.</span>
+            </li>
+          </ul>
+
+          <div class="promo-footer">
+            <a href="/" class="promo-link">Xem thêm sản phẩm nổi bật →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="form-wrap">
+          <div class="form-header">
+            <h1>Đăng ký tài khoản</h1>
+            <p>Nhập thông tin của bạn để bắt đầu mua sắm</p>
+          </div>
+
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="message error"><%= error %></div>
+          <% } %>
+
+          <form method="POST" action="/register">
+            <div class="form-group">
+              <label for="tk">Tài khoản</label>
+              <div class="input-wrap">
+                <input id="tk" type="text" name="tk" placeholder="Nhập tài khoản của bạn" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <div class="input-wrap">
+                <input id="email" type="email" name="email" placeholder="Nhập email của bạn" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="mk">Mật khẩu</label>
+              <div class="input-wrap">
+                <input id="mk" type="password" name="mk" placeholder="Nhập mật khẩu của bạn" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmMk">Nhập lại mật khẩu</label>
+              <div class="input-wrap">
+                <input id="confirmMk" type="password" name="confirmMk" placeholder="Nhập lại mật khẩu" required />
+              </div>
+            </div>
+
+            <button class="submit-btn" type="submit">Tạo tài khoản</button>
+          </form>
+
+          <div class="extra-links">
+            <div>Bạn đã có tài khoản? <a href="/login">Đăng nhập ngay</a></div>
+          </div>
+
+          <div class="divider">hoặc</div>
+
+          <a class="home-link" href="/">Quay về trang chủ</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

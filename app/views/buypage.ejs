@@ -1,0 +1,537 @@
+<%
+    const currentUserEmail = user && user.email ? user.email : '';
+    const voucherOptions = Array.isArray(availableVouchers) ? availableVouchers : [];
+%>
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Page</title>
+    <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+    <link rel="stylesheet" href="/css/buypage.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            const maxStock = <%= Number(tutorial.quantity || 0) %>;
+
+            $(".btnBuy").click(function () {
+                const id = $(this).attr("data-id");
+                const title = $(this).attr("data-title");
+                const published = $(this).attr("data-published");
+
+                if (published !== "true" && published !== "1") {
+                    alert("Sản phẩm này hiện không thể mua");
+                    return;
+                }
+
+                $("#buyId").val(id);
+                $("#buyTitle").val(title);
+                $("#buyQuantity").val(1);
+                $("#buyQuantity").attr("max", maxStock);
+                $("#buyEmail").val("<%= currentUserEmail %>");
+                $("#buyPhone").val("");
+                $("#buyVoucherCode").val("");
+
+                $("#buyModal").css("display", "block");
+                $("body").css("overflow", "hidden");
+            });
+
+            $("#closeBuyModal").click(function () {
+                $("#buyModal").hide();
+                $("body").css("overflow", "auto");
+            });
+
+            $("#confirmBuy").click(function () {
+                const tutorialId = $("#buyId").val();
+                const quantity = parseInt($("#buyQuantity").val(), 10);
+                const email = $("#buyEmail").val().trim();
+                const phone = $("#buyPhone").val().trim();
+                const voucherCode = ($("#buyVoucherCode").val() || "").trim();
+
+                if (!email || !phone) {
+                    alert("Vui lòng nhập email và số điện thoại");
+                    return;
+                }
+
+                if (!Number.isInteger(quantity) || quantity <= 0) {
+                    alert("Số lượng mua không hợp lệ");
+                    return;
+                }
+
+                if (quantity > maxStock) {
+                    alert("Số lượng mua vượt quá tồn kho");
+                    return;
+                }
+
+                $("#confirmBuy").prop("disabled", true).text("Đang xử lý...");
+
+                $.ajax({
+                    url: "/orders",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        tutorialId: tutorialId,
+                        quantity: quantity,
+                        email: email,
+                        phone: phone,
+                        voucherCode: voucherCode
+                    }),
+                    success: function (result) {
+                        alert(result && result.message ? result.message : "Mua hàng thành công!");
+                        $("#buyModal").hide();
+                        $("body").css("overflow", "auto");
+                        $("#buyQuantity").val(1);
+                        $("#buyVoucherCode").val("");
+                        window.location.reload();
+                    },
+                    error: function (error) {
+                        console.log(">>> buy error:", error);
+                        alert(
+                            error &&
+                            error.responseJSON &&
+                            error.responseJSON.message
+                                ? error.responseJSON.message
+                                : "Mua hàng thất bại!"
+                        );
+                    },
+                    complete: function () {
+                        $("#confirmBuy").prop("disabled", false).text("Xác nhận");
+                    }
+                });
+            });
+
+            $(window).click(function (event) {
+                if ($(event.target).is("#buyModal")) {
+                    $("#buyModal").hide();
+                    $("body").css("overflow", "auto");
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-container">
+            <a href="/" class="brand-logo" aria-label="Trang chủ">
+                <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+                <div class="brand-logo-text single">
+                    <span class="brand-main">PShop</span>
+                    <span class="brand-sub">Thế giới mua sắm đồ điện tử</span>
+                </div>
+            </a>
+
+            <div class="detail-topbar-actions">
+                <a href="/shop" class="detail-topbar-link">Cửa hàng</a>
+                <a href="/cart" class="detail-topbar-link">Giỏ hàng</a>
+                <a href="/my-orders" class="detail-topbar-link">Đơn hàng của tôi</a>
+
+                <div class="wishlist-popover-wrap" id="wishlistPopoverWrap">
+                    <button id="wishlistToggleBtn" type="button" class="detail-topbar-link wishlist-header-link">
+                        Yêu thích <span class="wishlist-count-badge" data-wishlist-count>0</span>
+                    </button>
+
+                    <div id="wishlistPopup" class="wishlist-popup" aria-hidden="true">
+                        <div class="wishlist-popup-head">
+                            <strong>Sản phẩm yêu thích</strong>
+                        </div>
+
+                        <div class="wishlist-popup-list" data-wishlist-section data-wishlist-variant="compact"
+                            data-empty-text="Bạn chưa thêm sản phẩm nào vào mục yêu thích."></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <% const isOutOfStock = Number(tutorial.quantity || 0) <= 0; const canBuy = tutorial.published && !isOutOfStock; %>
+
+        <div class="product-detail-card">
+            <div class="product-image-col">
+                <img src="/product-images/<%= tutorial.id %>" alt="tutorial image" class="product-img"
+                    onerror="this.src='/image/1.jpg'">
+            </div>
+
+            <div class="product-info-col">
+                <div class="product-id">Mã SP: #<%= tutorial.id %></div>
+
+                <h1 class="product-title"><%= tutorial.title %></h1>
+
+                <div class="product-desc">
+                    <strong>Mô tả:</strong>
+                    <%= tutorial.description %>
+                </div>
+
+                <div class="product-price">
+                    <%= tutorial.price ? tutorial.price + 'đ' : 'Liên hệ' %>
+                </div>
+
+                <div class="product-status <%= canBuy ? '' : 'unavailable' %>">
+                    Trạng thái: <%= isOutOfStock ? 'Hết hàng' : (tutorial.published ? 'Đang bán' : 'Ngừng bán') %>
+                </div>
+
+                <div class="action-buttons">
+                    <form action="/cart/items" method="POST" class="cart-form">
+                        <input type="hidden" name="tutorialId" value="<%= tutorial.id %>">
+                        <button type="submit" class="btn btn-outline" <%= canBuy ? "" : "disabled" %>>
+                            Thêm vào giỏ
+                        </button>
+                    </form>
+
+                    <button type="button" class="btn btn-primary btnBuy" data-id="<%= tutorial.id %>"
+                        data-title="<%= tutorial.title %>" data-published="<%= canBuy ? 'true' : 'false' %>"
+                        <%= canBuy ? "" : "disabled" %>>
+                        <%= canBuy ? 'Mua ngay' : (isOutOfStock ? 'Hết hàng' : 'Ngừng bán') %>
+                    </button>
+
+                    <button type="button" class="btn btn-outline wishlist-detail-btn" data-wishlist-button
+                        data-product-id="<%= tutorial.id %>" data-product-title="<%= tutorial.title %>"
+                        data-product-description="<%= tutorial.description %>"
+                        data-product-price="<%= tutorial.price || 0 %>"
+                        data-product-image="/product-images/<%= tutorial.id %>"
+                        data-product-published="<%= canBuy ? 'true' : 'false' %>"
+                        data-product-link="/products/<%= tutorial.id %>">
+                        <span data-wishlist-icon>♡</span>
+                        <span data-wishlist-text>Yêu thích</span>
+                    </button>
+                </div>
+
+                <div class="cart-link-wrapper">
+                    <a href="/cart" class="cart-link">→ Xem giỏ hàng của bạn</a>
+                    <div class="wishlist-detail-note">Bạn có thể lưu sản phẩm này vào mục yêu thích để xem lại nhanh hơn.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="buyModal">
+            <div class="modal-content">
+                <h3>Xác nhận mua hàng</h3>
+
+                <div class="form-group">
+                    <label>Mã sản phẩm:</label>
+                    <input type="text" id="buyId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Tên sản phẩm:</label>
+                    <input type="text" id="buyTitle" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Số lượng:</label>
+                    <input type="number" id="buyQuantity" value="1" min="1" max="<%= tutorial.quantity || 0 %>">
+                </div>
+
+                <div class="form-group">
+                    <label>Email liên hệ:</label>
+                    <input type="email" id="buyEmail" placeholder="Nhập email của bạn">
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại:</label>
+                    <input type="text" id="buyPhone" placeholder="Nhập số điện thoại">
+                </div>
+
+                <div class="form-group">
+                    <label>Mã voucher:</label>
+
+                    <% if (user) { %>
+                        <select id="buyVoucherCode">
+                            <option value="">-- Không dùng voucher --</option>
+
+                            <% if (voucherOptions.length > 0) { %>
+                                <% voucherOptions.forEach(function(voucher) { %>
+                                    <option value="<%= voucher.code %>">
+                                        <%= voucher.code %> - <%= voucher.name %>
+                                        (
+                                        <%= voucher.discountType === 'percent'
+                                            ? voucher.discountValue + '%'
+                                            : Number(voucher.discountValue || 0).toLocaleString('vi-VN') + 'đ' %>
+                                        )
+                                    </option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+
+                        <% if (voucherOptions.length === 0) { %>
+                            <small class="voucher-note">Hiện chưa có voucher phù hợp cho sản phẩm này</small>
+                        <% } %>
+                    <% } else { %>
+                        <select id="buyVoucherCode" disabled>
+                            <option value="">Đăng nhập để chọn voucher</option>
+                        </select>
+                        <small class="voucher-note">Chỉ user đã đăng nhập mới dùng được voucher</small>
+                    <% } %>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="closeBuyModal" class="btn btn-outline">Hủy</button>
+                    <button type="button" id="confirmBuy" class="btn btn-primary">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            const STORAGE_KEY = 'pshop_wishlist_v1';
+
+        function readItems() {
+            if (!IS_LOGGED_IN || !STORAGE_KEY) return [];
+
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                console.warn('Wishlist read error:', error);
+                return [];
+            }
+        }
+
+        function saveItems(items) {
+            if (!IS_LOGGED_IN || !STORAGE_KEY) return;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        }
+
+        function normalizeItem(item) {
+            return {
+                id: String(item.id || '').trim(),
+                title: String(item.title || '').trim(),
+                description: String(item.description || '').trim(),
+                price: Number(item.price || 0),
+                image: item.image || '/image/1.jpg',
+                published:
+                    item.published === true ||
+                    item.published === 'true' ||
+                    item.published === '1' ||
+                    item.published === 1,
+                link: item.link || (item.id ? '/products/' + encodeURIComponent(item.id) : '/shop')
+            };
+        }
+
+            function getItems() {
+                return readItems().map(normalizeItem).filter(function (item) {
+                    return item.id;
+                });
+            }
+
+        function hasItem(productId) {
+            return getItems().some(function (item) {
+                return item.id === String(productId);
+            });
+        }
+
+        function addItem(item) {
+            const nextItem = normalizeItem(item);
+            if (!nextItem.id) return getItems();
+
+                const items = getItems();
+                if (!items.some(function (entry) { return entry.id === nextItem.id; })) {
+                    items.unshift(nextItem);
+                    saveItems(items);
+                }
+                return items;
+            }
+
+        function removeItem(productId) {
+            const nextItems = getItems().filter(function (item) {
+                return item.id !== String(productId);
+            });
+            saveItems(nextItems);
+            return nextItems;
+        }
+
+            function toggleItem(item) {
+                const normalized = normalizeItem(item);
+                if (!normalized.id) return getItems();
+                return hasItem(normalized.id) ? removeItem(normalized.id) : addItem(normalized);
+            }
+
+            function escapeHtml(text) {
+                return String(text || '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+        function formatPrice(price) {
+            return Number(price || 0).toLocaleString('vi-VN') + 'đ';
+        }
+
+        function getButtonPayload(button) {
+            const dataset = button.dataset || {};
+            return {
+                id: dataset.productId,
+                title: dataset.productTitle,
+                description: dataset.productDescription,
+                price: dataset.productPrice,
+                image: dataset.productImage,
+                published: dataset.productPublished,
+                link: dataset.productLink
+            };
+        }
+
+        function syncButtons() {
+            document.querySelectorAll('[data-wishlist-button]').forEach(function (button) {
+                const icon = button.querySelector('[data-wishlist-icon]');
+                const textNode = button.querySelector('[data-wishlist-text]');
+
+                if (!IS_LOGGED_IN) {
+                    button.classList.remove('is-active');
+                    button.setAttribute('aria-pressed', 'false');
+                    button.setAttribute('title', 'Vui lòng đăng nhập để dùng mục yêu thích');
+
+                    if (icon) icon.textContent = '♡';
+                    if (textNode) textNode.textContent = 'Yêu thích';
+                    return;
+                }
+
+                const productId = button.dataset.productId;
+                const active = hasItem(productId);
+
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                button.setAttribute('title', active ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích');
+
+                if (icon) icon.textContent = active ? '♥' : '♡';
+                if (textNode) textNode.textContent = active ? 'Đã thích' : 'Yêu thích';
+            });
+        }
+
+            function syncCounters() {
+                const total = getItems().length;
+                document.querySelectorAll('[data-wishlist-count]').forEach(function (node) {
+                    node.textContent = String(total);
+                });
+            }
+
+        function renderCompactItems(items) {
+            return items.map(function (item) {
+                return `
+                    <article class="wishlist-mini-card">
+                        <a href="${escapeHtml(item.link)}" class="wishlist-mini-thumb">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
+                        </a>
+
+                        <div class="wishlist-mini-body">
+                            <a href="${escapeHtml(item.link)}" class="wishlist-mini-title">${escapeHtml(item.title)}</a>
+                            <div class="wishlist-mini-price">${formatPrice(item.price)}</div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="wishlist-mini-remove"
+                            data-wishlist-button
+                            data-product-id="${escapeHtml(item.id)}"
+                            data-product-title="${escapeHtml(item.title)}"
+                            data-product-description="${escapeHtml(item.description)}"
+                            data-product-price="${escapeHtml(item.price)}"
+                            data-product-image="${escapeHtml(item.image)}"
+                            data-product-published="${escapeHtml(item.published ? 'true' : 'false')}"
+                            data-product-link="${escapeHtml(item.link)}"
+                            title="Bỏ khỏi yêu thích">
+                            ×
+                        </button>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderSections() {
+            const items = getItems();
+
+            document.querySelectorAll('[data-wishlist-section]').forEach(function (section) {
+                const emptyText = section.dataset.emptyText || 'Bạn chưa thêm sản phẩm nào vào mục yêu thích.';
+                const variant = section.dataset.wishlistVariant || 'compact';
+                const emptyClass = variant === 'compact' ? 'wishlist-empty compact' : 'wishlist-empty';
+
+                if (!IS_LOGGED_IN) {
+                    section.innerHTML = '<div class="' + emptyClass + '">Vui lòng đăng nhập để dùng mục yêu thích.</div>';
+                    return;
+                }
+
+                if (!items.length) {
+                    section.innerHTML = '<div class="' + emptyClass + '">' + escapeHtml(emptyText) + '</div>';
+                    return;
+                }
+
+                if (variant === 'compact') {
+                    section.innerHTML = renderCompactItems(items);
+                    return;
+                }
+
+                section.innerHTML = '';
+            });
+        }
+
+        function refreshWishlist() {
+            syncButtons();
+            syncCounters();
+            renderSections();
+        }
+
+        document.addEventListener('click', function (event) {
+            const button = event.target.closest('[data-wishlist-button]');
+            if (!button) return;
+
+            event.preventDefault();
+
+            if (!IS_LOGGED_IN) {
+                goToLogin();
+                return;
+            }
+
+            toggleItem(getButtonPayload(button));
+            refreshWishlist();
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const wrap = document.getElementById('wishlistPopoverWrap');
+            const toggleBtn = document.getElementById('wishlistToggleBtn');
+            const popup = document.getElementById('wishlistPopup');
+
+            if (wrap && toggleBtn && popup) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    if (!IS_LOGGED_IN) {
+                        goToLogin();
+                        return;
+                    }
+
+                    const isOpen = popup.classList.contains('show');
+                    popup.classList.toggle('show', !isOpen);
+                    popup.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!wrap.contains(e.target)) {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+
+            refreshWishlist();
+        })();
+    </script>
+</body>
+
+</html>

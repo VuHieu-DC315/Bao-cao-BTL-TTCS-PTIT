@@ -1,0 +1,280 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* Thiết lập font Inter cho toàn bộ các thành phần */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --primary: #d70018;
+  --primary-dark: #b80014;
+  --text: #1f2937;
+  --bg: #f3f4f6;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  /* Khử răng cưa giúp font Inter hiển thị sắc nét hơn */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Đẩy toàn bộ trang lên sát lề trên */
+.page {
+  padding: 20px 24px 36px; /* Giảm padding-top từ 132px xuống 20px  */
+}
+
+.auth-shell {
+  max-width: 1200px; /* Box to lên theo yêu cầu  */
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  background: #fff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  min-height: 650px;
+}
+
+/* Cột bên trái: Promo */
+.promo-side {
+  padding: 40px 40px; /* Điều chỉnh padding để logo sát lề trái hơn  */
+  background: linear-gradient(180deg, #f8f9fa 0%, #ecc1cb 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Căn nội dung bám sát lề trái  */
+}
+
+/* Phần logo brand giống mẫu: icon bên trái, chữ bên phải */
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.brand-text-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.brand-name-promo {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.6px;
+  margin: 0;
+}
+
+.brand-tagline {
+  font-size: 18px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.brand-logo-promo {
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Đảm bảo toàn bộ nội dung cột trái bám sát lề */
+.promo-side {
+  padding: 40px 30px; /* Giảm padding trái để sát mép box hơn */
+  align-items: flex-start;
+}
+
+.promo-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.promo-title .accent {
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.promo-subtitle {
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #4b5563;
+}
+
+/* Danh sách ưu đãi */
+.benefit-card {
+  width: 100%;
+  max-width: 600px;
+}
+
+.benefit-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefit-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.gift-icon {
+  font-size: 18px;
+}
+
+/* Ẩn link chính sách ưu đãi Pmember ở cuối danh sách */
+.benefit-link {
+  display: none;
+}
+
+/* Cột bên phải: Form đăng nhập */
+.login-side {
+  padding: 20px 60px 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  border-left: 1px solid #f0f0f0;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 0;
+  padding-top: 28px;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0 0 36px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  height: 54px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 16px;
+  transition: 0.2s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(215, 0, 24, 0.08);
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #9ca3af;
+}
+
+.login-btn {
+  width: 100%;
+  height: 54px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  background: var(--primary-dark);
+}
+
+.bottom-text {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.register-text {
+  line-height: 1.6;
+}
+
+.bottom-text a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.forgot-link {
+  display: block;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #5b61ff;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.home-back {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.home-back a {
+  color: #5b61ff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.home-back a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}

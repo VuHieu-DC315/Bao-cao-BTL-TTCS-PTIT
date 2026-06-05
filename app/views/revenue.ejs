@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doanh thu theo tháng</title>
+  <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+  <link rel="stylesheet" href="/css/revenue.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-container">
+      <a href="/" class="brand-logo" aria-label="Trang chủ">
+        <img src="/image/Shop_logo.jpg" alt="Shop Logo" class="brand-logo-img" />
+        <div class="brand-logo-text single">
+          <span class="brand-main">PShop</span>
+          <span class="brand-sub">Thống kê doanh thu theo tháng</span>
+        </div>
+      </a>
+
+      <nav class="top-actions">
+        <a href="/admin">Về trang admin</a>
+        <a href="/admin/orders">Quản lý đơn hàng</a>
+        <a href="/admin/products">Quản lý sản phẩm</a>
+        <a href="/logout">Đăng xuất</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="page-header">
+      <a href="/admin" class="back-btn" aria-label="Quay lại trang admin">←</a>
+      <div>
+        <p class="page-label">Bảng điều khiển doanh thu</p>
+        <h1>Doanh thu theo tháng</h1>
+        <p class="page-desc">Chỉ tính các đơn hàng có trạng thái <strong>completed</strong>. Chọn tháng để xem tổng doanh thu và danh sách sản phẩm đã bán trong tháng đó.</p>
+      </div>
+    </section>
+
+    <section class="panel monthly-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-label">Doanh thu theo tháng</p>
+          <h2><%= selectedMonthLabel %> năm <%= selectedYear %></h2>
+        </div>
+      </div>
+
+      <form method="GET" action="/admin/revenue" class="filter-form">
+        <div class="filter-item small">
+          <label for="year">Năm thống kê</label>
+          <select id="year" name="year">
+            <% availableYears.forEach(function(year) { %>
+              <option value="<%= year %>" <%= year === selectedYear ? "selected" : "" %>><%= year %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="filter-item small">
+          <label for="month">Tháng thống kê</label>
+          <select id="month" name="month">
+            <% monthOptions.forEach(function(month) { %>
+              <option value="<%= month.value %>" <%= month.value === selectedMonth ? "selected" : "" %>><%= month.label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="primary-btn">Xem thống kê</button>
+          <a href="/admin/revenue" class="ghost-btn">Đặt lại</a>
+        </div>
+      </form>
+
+      <section class="summary-grid">
+        <article class="summary-card summary-card--highlight">
+          <span class="summary-label">Tổng doanh thu tháng</span>
+          <strong><%= totalRevenueMonth.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) %></strong>
+          <p>Doanh thu của <%= selectedMonthLabel.toLowerCase() %> năm <%= selectedYear %>.</p>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-label">Số đơn completed</span>
+          <strong><%= totalOrdersMonth.toLocaleString("vi-VN") %></strong>
+          <p>Tổng số đơn đã hoàn thành trong tháng được chọn.</p>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-label">Số lượng đã bán</span>
+          <strong><%= totalUnitsSoldMonth.toLocaleString("vi-VN") %></strong>
+          <p>Tổng số lượng sản phẩm bán ra trong tháng.</p>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-label">Sản phẩm đã bán</span>
+          <strong><%= soldProductCount.toLocaleString("vi-VN") %></strong>
+          <p>Số sản phẩm có phát sinh bán trong tháng được chọn.</p>
+        </article>
+      </section>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-head panel-head--stacked">
+        <div>
+          <p class="panel-label">Hiệu suất sản phẩm</p>
+          <h2>Các sản phẩm đã bán trong <%= selectedMonthLabel.toLowerCase() %> năm <%= selectedYear %></h2>
+          <p class="panel-desc">Danh sách này chỉ hiển thị các sản phẩm có phát sinh đơn completed trong tháng đã chọn.</p>
+        </div>
+
+        <div class="panel-meta">
+          <span><%= productStats.length %> sản phẩm</span>
+        </div>
+      </div>
+
+      <% if (productStats && productStats.length > 0) { %>
+        <div class="table-wrap">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên sản phẩm</th>
+                <th>Lượt bán</th>
+                <th>Số lượng đã bán</th>
+                <th>Doanh thu</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% productStats.forEach(function(item) { %>
+                <tr>
+                  <td><span class="id-badge">#<%= item.id %></span></td>
+                  <td class="title-cell">
+                    <strong><%= item.title %></strong>
+                    <span>Giá bán: <%= (item.price || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" }) %></span>
+                  </td>
+                  <td><%= item.orderCount.toLocaleString("vi-VN") %></td>
+                  <td><span class="metric-badge"><%= item.unitsSold.toLocaleString("vi-VN") %></span></td>
+                  <td><%= item.revenue.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="empty-box">Tháng này chưa có sản phẩm nào được bán ở trạng thái completed.</div>
+      <% } %>
+    </section>
+  </main>
+</body>
+
+</html>

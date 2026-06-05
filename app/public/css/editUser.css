@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root {
+  --primary: #e30613;
+  --primary-dark: #c7000c;
+  --text: #172554;
+  --muted: #64748b;
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+input,
+select,
+button,
+a {
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #f7f8fc 0%, #eef2f7 100%);
+  color: #0f172a;
+}
+
+/* Top tab bar */
+.topbar {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 8px 24px rgba(227, 6, 19, 0.2);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.topbar-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+}
+
+.topbar-back-btn:hover {
+  background: #fff5f5;
+}
+
+.logo-img {
+    width: 60px; /* Tăng kích thước logo */
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: var(--shadow-sm);
+}
+
+
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.brand-subtitle {
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.topbar-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.topbar-link:hover {
+  text-decoration: underline;
+}
+
+.page-wrap {
+  max-width: 1120px;
+  margin: 42px auto;
+  padding: 0 20px;
+}
+
+.page-heading {
+  margin-bottom: 22px;
+}
+
+.page-kicker {
+  margin: 0 0 8px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.page-heading h2 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.page-desc {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.edit-card {
+  background: var(--card);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 34px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+input,
+select {
+  width: 100%;
+  height: 50px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0 14px;
+  font-size: 16px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(227, 6, 19, 0.12);
+}
+
+.form-actions {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background: #e9eef6;
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 16px 18px;
+  }
+
+  .brand-title {
+    font-size: 20px;
+  }
+
+  .page-wrap {
+    margin: 28px auto;
+  }
+
+  .page-heading h2 {
+    font-size: 32px;
+  }
+
+  .page-desc {
+    font-size: 16px;
+  }
+
+  .edit-card {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

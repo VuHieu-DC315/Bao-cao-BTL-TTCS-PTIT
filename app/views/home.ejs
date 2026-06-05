@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PShop - Trang chủ</title>
+
+    <link rel="icon" type="image/jpeg" href="/image/Shop_logo.jpg" />
+    <link rel="stylesheet" href="/css/home.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Đã gộp style vào file home.css -->
+</head>
+<body>
+    <div class="top-strip" style="background: #f1f1f1; font-size: 13px; padding: 5px 0;">
+        <div class="container" style="display: flex; gap: 20px; justify-content: center;">
+            <span>Thu cũ giá ngon</span>
+            <span>Sản phẩm chính hãng</span>
+            <span>Giao nhanh toàn quốc</span>
+            <span>Hotline: 1800 2097</span>
+        </div>
+    </div>
+
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-logo">
+                    <img src="/image/Shop_logo.jpg" alt="PShop Logo" />
+                </div>
+                <div class="brand-text">
+                    <h2>PShop</h2>
+                    <span>Thế giới mua sắm đồ điện tử</span>
+                </div>
+            </a>
+
+            <form class="search-box" action="/shop" method="GET">
+                <input type="text" name="q" placeholder="Bạn muốn mua gì hôm nay?" />
+                <button type="submit">Tìm</button>
+            </form>
+
+            <div class="header-right">
+    <a href="/cart" class="header-nav-link">Giỏ hàng</a>
+    <a href="/my-orders" class="header-nav-link">Đơn hàng của tôi</a>
+
+    <div class="wishlist-popover-wrap" id="wishlistPopoverWrap">
+        <button id="wishlistToggleBtn" class="wishlist-header-link" type="button">
+            Yêu thích <span class="wishlist-count-badge" data-wishlist-count>0</span>
+        </button>
+
+        <div id="wishlistPopup" class="wishlist-popup" aria-hidden="true">
+            <div class="wishlist-popup-head">
+                <strong>Sản phẩm yêu thích</strong>
+            </div>
+
+            <div
+                class="wishlist-popup-list"
+                data-wishlist-section
+                data-wishlist-variant="compact"
+                data-empty-text="Bạn chưa thêm sản phẩm nào vào mục yêu thích.">
+            </div>
+        </div>
+    </div>
+
+    <% if (user) { %>
+        <a href="/logout" class="login-btn">Đăng xuất</a>
+    <% } else { %>
+        <a href="/login" class="login-btn">Đăng nhập</a>
+    <% } %>
+</div>
+        </div>
+    </header>
+
+    <main>
+        <%
+            const heroProductsSource = (tutorials || []).filter(function (item) {
+                return item && item.published && Number(item.quantity || 0) > 0;
+            });
+            const heroProducts = (heroProductsSource.length ? heroProductsSource : (tutorials || [])).slice(0, 3);
+        %>
+
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <p class="hero-tag">CỬA HÀNG CÔNG NGHỆ PSHOP</p>
+                    <h1>Mua sắm thiết bị điện tử dễ dàng tại PShop</h1>
+                    <p>Khám phá điện thoại, laptop và nhiều thiết bị công nghệ mới nhất.</p>
+                    <div class="hero-actions">
+                        <a href="/shop" class="primary-btn">Vào cửa hàng</a>
+                        <a href="#products" class="secondary-btn">Xem sản phẩm</a>
+                    </div>
+                </div>
+
+                <div class="hero-card">
+                    <div class="hero-slider" id="heroSlider" data-total-slides="<%= heroProducts.length %>">
+                        <% if (heroProducts.length > 0) { %>
+                            <% heroProducts.forEach(function(product, index) { %>
+                                <a
+                                    href="/products/<%= product.id %>"
+                                    class="hero-slide <%= index === 0 ? 'active' : '' %>"
+                                    data-slide-index="<%= index %>">
+                                    <img
+                                        src="/product-images/<%= product.id %>"
+                                        alt="<%= product.title %>"
+                                        onerror="this.src='/image/1.jpg'" />
+                                    <div class="hero-product-info">
+                                        <h3><%= product.title %></h3>
+                                        <p><%= Number(product.price || 0).toLocaleString('vi-VN') %>đ</p>
+                                    </div>
+                                </a>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="hero-slide active" data-slide-index="0">
+                                <img src="/image/1.jpg" alt="Sản phẩm nổi bật" onerror="this.src='/image/1.jpg'" />
+                                <div class="hero-product-info">
+                                    <h3>Sản phẩm nổi bật</h3>
+                                    <p>Khám phá nhiều thiết bị công nghệ mới tại PShop</p>
+                                </div>
+                            </div>
+                        <% } %>
+
+                        <% if (heroProducts.length > 1) { %>
+                            <button type="button" class="hero-slider-btn prev" id="heroPrev" aria-label="Ảnh trước">&#10094;</button>
+                            <button type="button" class="hero-slider-btn next" id="heroNext" aria-label="Ảnh tiếp theo">&#10095;</button>
+
+                            <div class="hero-slider-dots" id="heroDots">
+                                <% heroProducts.forEach(function(product, index) { %>
+                                    <button
+                                        type="button"
+                                        class="hero-dot <%= index === 0 ? 'active' : '' %>"
+                                        data-slide="<%= index %>"
+                                        aria-label="Chuyển tới ảnh <%= index + 1 %>"></button>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <%
+    const homeAnnouncementLimit = 3;
+    const homeAnnouncements = (announcements || []).slice(0, homeAnnouncementLimit);
+    const showAnnouncementMore = (announcements || []).length > homeAnnouncementLimit;
+%>
+        <section class="announcement-section">
+    <div class="container">
+        <div class="announcement-panel">
+            <div class="announcement-head">
+                <div>
+                    <h2>Thông báo mới</h2>
+                    <p>Ưu đãi và cập nhật nổi bật dành cho khách hàng PShop</p>
+                </div>
+
+                <% if (showAnnouncementMore) { %>
+                    <a href="/announcements" class="announcement-link">Xem thêm</a>
+                <% } %>
+            </div>
+
+            <% if (homeAnnouncements.length > 0) { %>
+                <div class="announcement-grid">
+                    <% homeAnnouncements.forEach(function(item) { %>
+                        <article class="announcement-card">
+                            <span class="announcement-badge">Thông báo</span>
+
+                            <button
+                                type="button"
+                                class="announcement-title-button announcement-open"
+                                data-title="<%= item.title %>"
+                                data-content="<%= item.content %>"
+                                data-meta="<%= item.isPermanent ? 'Thông báo vĩnh viễn' : ('Từ: ' + (item.startDateVN || 'Không giới hạn') + ' | Đến: ' + (item.endDateVN || 'Không giới hạn')) %>">
+                                <span class="announcement-title"><%= item.title %></span>
+                            </button>
+
+                            <p class="announcement-content preview"><%= item.content %></p>
+
+                            <div class="announcement-meta">
+                                <% if (item.isPermanent) { %>
+                                    <div>Thông báo vĩnh viễn</div>
+                                <% } else if (item.startDateVN || item.endDateVN) { %>
+                                    <div>
+                                        Từ: <%= item.startDateVN || "Không giới hạn" %><br>
+                                        Đến: <%= item.endDateVN || "Không giới hạn" %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="announcement-empty">Hiện chưa có thông báo nào.</div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+        <div class="container products-showcase">
+            <section class="product-section" id="products">
+                <div class="section-header">
+                    <h2>Sản phẩm nổi bật</h2>
+                </div>
+
+                <div class="product-grid three-columns">
+                    <% if (tutorials && tutorials.length > 0) { %>
+                        <% tutorials.forEach(function(item) { %>
+                            <%
+                                const isOutOfStock = Number(item.quantity || 0) <= 0;
+                                const canBuy = item.published && !isOutOfStock;
+                            %>
+                            <article class="product-card">
+                                <button
+                                    type="button"
+                                    class="wishlist-toggle product-wishlist-btn"
+                                    data-wishlist-button
+                                    data-product-id="<%= item.id %>"
+                                    data-product-title="<%= item.title %>"
+                                    data-product-description="<%= item.description %>"
+                                    data-product-price="<%= item.price || 0 %>"
+                                    data-product-image="/product-images/<%= item.id %>"
+                                    data-product-published="<%= canBuy ? 'true' : 'false' %>"
+                                    data-product-link="/products/<%= item.id %>">
+                                    <span data-wishlist-icon>♡</span>
+                                    <span data-wishlist-text>Yêu thích</span>
+                                </button>
+                                <div class="product-image">
+                                    <img src="/product-images/<%= item.id %>"
+                                         alt="<%= item.title %>"
+                                         onerror="this.src='/image/1.jpg'" />
+                                </div>
+
+                                <h4><%= item.title %></h4>
+
+                                <p class="product-desc">
+                                    <%= item.description %>
+                                </p>
+
+                                <span class="price">
+                                    <%= Number(item.price || 0).toLocaleString("vi-VN") %>đ
+                                </span>
+
+                                <% if (canBuy) { %>
+    <a href="/products/<%= item.id %>" class="buy-product-btn">
+        Mua
+    </a>
+<% } else { %>
+    <span class="buy-product-btn disabled">
+        <%= isOutOfStock ? 'Hết hàng' : 'Ngừng bán' %>
+    </span>
+<% } %>
+                            </article>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="product-empty">Chưa có sản phẩm nào.</p>
+                    <% } %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="contact-float" aria-label="Liên hệ nhanh">
+    <a
+        href="https://m.me/yourpage"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="contact-btn"
+        title="Nhắn Messenger"
+    >
+        <img src="/image/messenger.png" alt="Messenger" />
+    </a>
+
+    <a
+        href="https://zalo.me/yourzalo"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="contact-btn"
+        title="Nhắn Zalo"
+    >
+        <img src="/image/zalo.webp" alt="Zalo" />
+    </a>
+</div>
+
+<footer class="footer-contact" id="contact">
+    <div class="container footer-container">
+        <div class="footer-info">
+            <strong>PShop - Thế giới mua sắm đồ điện tử</strong>
+            <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+            <p>
+                Hotline: <a href="tel:0123456789">0123 456 789</a>
+                <span class="footer-dot">•</span>
+                Email: <a href="mailto:contact@pshop.vn">contact@pshop.vn</a>
+            </p>
+        </div>
+
+        <div class="footer-social">
+            <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" title="Facebook" class="social-btn">
+                <img src="/image/facebook.webp" alt="Facebook" />
+            </a>
+
+            <a href="https://m.me/yourpage" target="_blank" rel="noopener noreferrer" title="Messenger" class="social-btn">
+                <img src="/image/messenger.png" alt="Messenger" />
+            </a>
+
+            <a href="https://zalo.me/yourzalo" target="_blank" rel="noopener noreferrer" title="Zalo" class="social-btn">
+                <img src="/image/zalo.webp" alt="Zalo" />
+            </a>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 PShop. All rights reserved.
+    </div>
+</footer>
+
+    <div class="announcement-modal" id="announcementModal" aria-hidden="true">
+        <div class="announcement-modal-card" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
+            <button type="button" class="modal-close" id="closeAnnouncementModal" aria-label="Đóng">×</button>
+            <div class="announcement-modal-meta" id="announcementModalMeta"></div>
+            <h3 class="announcement-modal-title" id="announcementModalTitle"></h3>
+            <div class="announcement-modal-content" id="announcementModalContent"></div>
+        </div>
+    </div>
+
+
+    <script>
+    (function () {
+        const IS_LOGGED_IN = <%= !!user %>;
+        const LOGIN_URL = '/login';
+        const STORAGE_KEY = <%- JSON.stringify(user ? ('pshop_wishlist_user_' + user.id) : '') %>;
+
+        function goToLogin() {
+            window.location.href = LOGIN_URL;
+        }
+
+        function readItems() {
+            if (!IS_LOGGED_IN || !STORAGE_KEY) return [];
+
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                console.warn('Wishlist read error:', error);
+                return [];
+            }
+        }
+
+        function saveItems(items) {
+            if (!IS_LOGGED_IN || !STORAGE_KEY) return;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        }
+
+        function normalizeItem(item) {
+            return {
+                id: String(item.id || '').trim(),
+                title: String(item.title || '').trim(),
+                description: String(item.description || '').trim(),
+                price: Number(item.price || 0),
+                image: item.image || '/image/1.jpg',
+                published:
+                    item.published === true ||
+                    item.published === 'true' ||
+                    item.published === '1' ||
+                    item.published === 1,
+                link: item.link || (item.id ? '/products/' + encodeURIComponent(item.id) : '/shop')
+            };
+        }
+
+        function getItems() {
+            return readItems().map(normalizeItem).filter(function (item) {
+                return item.id;
+            });
+        }
+
+        function hasItem(productId) {
+            return getItems().some(function (item) {
+                return item.id === String(productId);
+            });
+        }
+
+        function addItem(item) {
+            const nextItem = normalizeItem(item);
+            if (!nextItem.id) return getItems();
+
+            const items = getItems();
+            if (!items.some(function (entry) { return entry.id === nextItem.id; })) {
+                items.unshift(nextItem);
+                saveItems(items);
+            }
+            return items;
+        }
+
+        function removeItem(productId) {
+            const nextItems = getItems().filter(function (item) {
+                return item.id !== String(productId);
+            });
+            saveItems(nextItems);
+            return nextItems;
+        }
+
+        function toggleItem(item) {
+            const normalized = normalizeItem(item);
+            if (!normalized.id) return getItems();
+            return hasItem(normalized.id) ? removeItem(normalized.id) : addItem(normalized);
+        }
+
+        function escapeHtml(text) {
+            return String(text || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function formatPrice(price) {
+            return Number(price || 0).toLocaleString('vi-VN') + 'đ';
+        }
+
+        function getButtonPayload(button) {
+            const dataset = button.dataset || {};
+            return {
+                id: dataset.productId,
+                title: dataset.productTitle,
+                description: dataset.productDescription,
+                price: dataset.productPrice,
+                image: dataset.productImage,
+                published: dataset.productPublished,
+                link: dataset.productLink
+            };
+        }
+
+        function syncButtons() {
+            document.querySelectorAll('[data-wishlist-button]').forEach(function (button) {
+                const icon = button.querySelector('[data-wishlist-icon]');
+                const textNode = button.querySelector('[data-wishlist-text]');
+
+                if (!IS_LOGGED_IN) {
+                    button.classList.remove('is-active');
+                    button.setAttribute('aria-pressed', 'false');
+                    button.setAttribute('title', 'Vui lòng đăng nhập để dùng mục yêu thích');
+
+                    if (icon) icon.textContent = '♡';
+                    if (textNode) textNode.textContent = 'Yêu thích';
+                    return;
+                }
+
+                const productId = button.dataset.productId;
+                const active = hasItem(productId);
+
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                button.setAttribute('title', active ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích');
+
+                if (icon) icon.textContent = active ? '♥' : '♡';
+                if (textNode) textNode.textContent = active ? 'Đã thích' : 'Yêu thích';
+            });
+        }
+
+        function syncCounters() {
+            const total = IS_LOGGED_IN ? getItems().length : 0;
+            document.querySelectorAll('[data-wishlist-count]').forEach(function (node) {
+                node.textContent = String(total);
+            });
+        }
+
+        function renderCompactItems(items) {
+            return items.map(function (item) {
+                return `
+                    <article class="wishlist-mini-card">
+                        <a href="${escapeHtml(item.link)}" class="wishlist-mini-thumb">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
+                        </a>
+
+                        <div class="wishlist-mini-body">
+                            <a href="${escapeHtml(item.link)}" class="wishlist-mini-title">${escapeHtml(item.title)}</a>
+                            <div class="wishlist-mini-price">${formatPrice(item.price)}</div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="wishlist-mini-remove"
+                            data-wishlist-button
+                            data-product-id="${escapeHtml(item.id)}"
+                            data-product-title="${escapeHtml(item.title)}"
+                            data-product-description="${escapeHtml(item.description)}"
+                            data-product-price="${escapeHtml(item.price)}"
+                            data-product-image="${escapeHtml(item.image)}"
+                            data-product-published="${escapeHtml(item.published ? 'true' : 'false')}"
+                            data-product-link="${escapeHtml(item.link)}"
+                            title="Bỏ khỏi yêu thích">
+                            ×
+                        </button>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderSections() {
+            const items = getItems();
+
+            document.querySelectorAll('[data-wishlist-section]').forEach(function (section) {
+                const emptyText = section.dataset.emptyText || 'Bạn chưa thêm sản phẩm nào vào mục yêu thích.';
+                const variant = section.dataset.wishlistVariant || 'compact';
+                const emptyClass = variant === 'compact' ? 'wishlist-empty compact' : 'wishlist-empty';
+
+                if (!IS_LOGGED_IN) {
+                    section.innerHTML = '<div class="' + emptyClass + '">Vui lòng đăng nhập để dùng mục yêu thích.</div>';
+                    return;
+                }
+
+                if (!items.length) {
+                    section.innerHTML = '<div class="' + emptyClass + '">' + escapeHtml(emptyText) + '</div>';
+                    return;
+                }
+
+                if (variant === 'compact') {
+                    section.innerHTML = renderCompactItems(items);
+                    return;
+                }
+
+                section.innerHTML = '';
+            });
+        }
+
+        function refreshWishlist() {
+            syncButtons();
+            syncCounters();
+            renderSections();
+        }
+
+        document.addEventListener('click', function (event) {
+            const button = event.target.closest('[data-wishlist-button]');
+            if (!button) return;
+
+            event.preventDefault();
+
+            if (!IS_LOGGED_IN) {
+                goToLogin();
+                return;
+            }
+
+            toggleItem(getButtonPayload(button));
+            refreshWishlist();
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const wrap = document.getElementById('wishlistPopoverWrap');
+            const toggleBtn = document.getElementById('wishlistToggleBtn');
+            const popup = document.getElementById('wishlistPopup');
+
+            if (wrap && toggleBtn && popup) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    if (!IS_LOGGED_IN) {
+                        goToLogin();
+                        return;
+                    }
+
+                    const isOpen = popup.classList.contains('show');
+                    popup.classList.toggle('show', !isOpen);
+                    popup.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!wrap.contains(e.target)) {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        popup.classList.remove('show');
+                        popup.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+
+            refreshWishlist();
+        });
+
+        if (document.readyState !== 'loading') {
+            refreshWishlist();
+        }
+    })();
+</script>
+
+
+    <script>
+        (function () {
+            function setupHeroSlider() {
+                const slider = document.getElementById('heroSlider');
+                if (!slider) return;
+
+                const slides = Array.from(slider.querySelectorAll('.hero-slide'));
+                const dots = Array.from(slider.querySelectorAll('.hero-dot'));
+                const prevBtn = document.getElementById('heroPrev');
+                const nextBtn = document.getElementById('heroNext');
+
+                if (slides.length <= 1) return;
+
+                let activeIndex = Math.max(slides.findIndex((slide) => slide.classList.contains('active')), 0);
+                let autoTimer = null;
+                let touchStartX = 0;
+                let touchEndX = 0;
+
+                function showSlide(nextIndex) {
+                    activeIndex = (nextIndex + slides.length) % slides.length;
+
+                    slides.forEach((slide, index) => {
+                        slide.classList.toggle('active', index === activeIndex);
+                        slide.setAttribute('aria-hidden', index === activeIndex ? 'false' : 'true');
+                        slide.tabIndex = index === activeIndex ? 0 : -1;
+                    });
+
+                    dots.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === activeIndex);
+                        dot.setAttribute('aria-pressed', index === activeIndex ? 'true' : 'false');
+                    });
+                }
+
+                function stopAutoPlay() {
+                    if (autoTimer) {
+                        window.clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+
+                function startAutoPlay() {
+                    stopAutoPlay();
+                    autoTimer = window.setInterval(function () {
+                        showSlide(activeIndex + 1);
+                    }, 4000);
+                }
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function () {
+                        showSlide(activeIndex - 1);
+                        startAutoPlay();
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function () {
+                        showSlide(activeIndex + 1);
+                        startAutoPlay();
+                    });
+                }
+
+                dots.forEach((dot) => {
+                    dot.addEventListener('click', function () {
+                        const nextIndex = Number(dot.dataset.slide || 0);
+                        showSlide(nextIndex);
+                        startAutoPlay();
+                    });
+                });
+
+                slider.addEventListener('mouseenter', stopAutoPlay);
+                slider.addEventListener('mouseleave', startAutoPlay);
+                slider.addEventListener('focusin', stopAutoPlay);
+                slider.addEventListener('focusout', startAutoPlay);
+
+                slider.addEventListener('touchstart', function (event) {
+                    touchStartX = event.changedTouches[0].clientX;
+                }, { passive: true });
+
+                slider.addEventListener('touchend', function (event) {
+                    touchEndX = event.changedTouches[0].clientX;
+                    const deltaX = touchEndX - touchStartX;
+
+                    if (Math.abs(deltaX) < 40) return;
+
+                    if (deltaX > 0) {
+                        showSlide(activeIndex - 1);
+                    } else {
+                        showSlide(activeIndex + 1);
+                    }
+                    startAutoPlay();
+                }, { passive: true });
+
+                showSlide(activeIndex);
+                startAutoPlay();
+            }
+
+            function setupAnnouncementModal() {
+                const modal = document.getElementById('announcementModal');
+                const titleNode = document.getElementById('announcementModalTitle');
+                const contentNode = document.getElementById('announcementModalContent');
+                const metaNode = document.getElementById('announcementModalMeta');
+                const closeBtn = document.getElementById('closeAnnouncementModal');
+                const openButtons = Array.from(document.querySelectorAll('.announcement-open'));
+
+                if (!modal || !titleNode || !contentNode || !metaNode || !openButtons.length) {
+                    return;
+                }
+
+                function openModal(button) {
+                    titleNode.textContent = button.dataset.title || 'Thông báo';
+                    contentNode.textContent = button.dataset.content || '';
+                    metaNode.textContent = button.dataset.meta || '';
+                    modal.classList.add('show');
+                    modal.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('modal-open');
+                }
+
+                function closeModal() {
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('modal-open');
+                }
+
+                openButtons.forEach((button) => {
+                    button.addEventListener('click', function () {
+                        openModal(button);
+                    });
+                });
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeModal);
+                }
+
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeModal();
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                setupHeroSlider();
+                setupAnnouncementModal();
+            });
+        })();
+    </script>
+</body>
+</html>
